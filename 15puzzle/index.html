@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel='stylesheet' href='css/style.css' type='text/css'>
+    <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script src="js/enchant.js"></script>
+    <script src="js/game.js"></script>
+    <title>15 パズル</title>
+  </head>
+  <body>
+    <div>15パズル</div>
+    <div>
+      <label>横</label>
+      <select id="cell-x">
+	<option value="2">2</option>
+	<option value="3">3</option>
+	<option value="4">4</option>
+	<option value="5">5</option>
+	<option value="6">6</option>
+	<option value="7">7</option>
+	<option value="8">8</option>
+	<option value="9">9</option>
+      </select>
+      ×
+      <label>縦</label>
+      <select id="cell-y">
+	<option value="2">2</option>
+	<option value="3">3</option>
+	<option value="4">4</option>
+	<option value="5">5</option>
+	<option value="6">6</option>
+	<option value="7">7</option>
+	<option value="8">8</option>
+	<option value="9">9</option>
+      </select>
+      <img id="shuffle" src="images/grid.png" wodtj="24" height="24" title="suffle"></img>
+      <img id="bgm-on" src="images/sound.png" width="24" height="24" title="play BGM"></img>
+      <img id="bgm-off" src="images/sound_off.png" width="24" heihgt="24" title="mute BGM"></img>
+    </div>
+    <div id="enchant-stage"></div>
+    <div>
+      coffee-script のコード：<a href="./js/main.coffee">main.coffee</a><br/>
+      参考にしたプログラム： <a href="http://code.9leap.net/codes/show/4497">http://code.9leap.net/codes/show/4497</a>
+    </div>
+  </body>
+  
+</html>
