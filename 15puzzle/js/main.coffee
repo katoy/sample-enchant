@@ -14,7 +14,7 @@ $ ->
   
   enchant()                   # enchant.js v0.6.3
 
-  BGM_URL = 'http://enchantjs.com/assets/sounds/bgm01.wav' # BGM
+  BGM_URL = './sounds/bgm01.wav'                                  # BGM
   IMG_URL = 'images/enchant.png'                                  # パズルの画像 (320 x 320),
   PRELOAD_MATERIAL = ['images/start.png', IMG_URL, BGM_URL]       # スタートロゴ (236 x 48)
 
@@ -250,7 +250,8 @@ $ ->
         $("#bgm-on").show()
         $("#bgm-off").hide()
         bgm.play()
-        bgm._element.loop = true
+        bgm._element.loop = true  if bgm.element
+        bgm.src.loop = true       if bgm.src
       else
         $("#bgm-on").hide()
         $("#bgm-off").show()

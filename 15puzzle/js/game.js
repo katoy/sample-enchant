@@ -7,7 +7,7 @@
     var BGM_URL, Board, Grid, IMG_URL, PRELOAD_MATERIAL, Panel, conf, createEndScene, createStartScene, game, getConf, getParameterByName, rand, randInAry;
 
     enchant();
-    BGM_URL = 'http://enchantjs.com/assets/sounds/bgm01.wav';
+    BGM_URL = './sounds/bgm01.wav';
     IMG_URL = 'images/enchant.png';
     PRELOAD_MATERIAL = ['images/start.png', IMG_URL, BGM_URL];
     game = null;
@@ -346,7 +346,12 @@
           $("#bgm-on").show();
           $("#bgm-off").hide();
           bgm.play();
-          return bgm._element.loop = true;
+          if (bgm.element) {
+            bgm._element.loop = true;
+          }
+          if (bgm.src) {
+            return bgm.src.loop = true;
+          }
         } else {
           $("#bgm-on").hide();
           $("#bgm-off").show();
