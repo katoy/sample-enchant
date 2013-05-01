@@ -6,10 +6,9 @@ enchant.js の練習です。
 
    $ cake compile
 
-で main.script から game.js として javascript に変換できます。
+とすることで main.script から game.js として javascript に変換できます。
 
-デモ：
+デモ：  
 http://homepage2.nifty.com/youichi_kato/src/github/enchant/sample001/index.html  
-
 http://homepage2.nifty.com/youichi_kato/src/github/enchant/15puzzle/index.html  
 
