@@ -2,7 +2,7 @@
 enchant.js の練習です。
 
 - sample001  スプライトの表示、移動、クリック時の処理  
-- 15puzzle　 15 パズルとその一般課 (n x m のセル分割), BGM の再生、Start シーン処理  
+- 15puzzle　 15 パズルとその一般化 (n x m のセル分割), BGM の再生、Start シーン処理  
 
    $ cake compile
 
