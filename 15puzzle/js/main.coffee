@@ -27,10 +27,7 @@ $ ->
     regexS = "[\\?&]" + name + "=([^&#]*)"
     regex = new RegExp(regexS)
     results = regex.exec(window.location.search)
-    if (results == null)
-      return def_val
-    else
-      return decodeURIComponent(results[1].replace(/\+/g, " "))
+    return if (results == null) then def_val else decodeURIComponent(results[1].replace(/\+/g, " "))
   
   #  [0, ... , num -1] の範囲の整数をランダムに返す。
   rand = (num) -> Math.floor((Math.random() * num))
@@ -38,42 +35,19 @@ $ ->
   # 配列中の要素をランダムに返す。
   randInAry = (ary) -> ary[rand(ary.length)]
   
-  # クラス: グリッドライン用グループ
-  class Grid extends Group
-    constructor:  (conf) ->
-      super()
-
-      # クラス: グリッドライン用のライン
-      class Line extends Sprite
-        constructor: (opts) ->
-          super opts.w, opts.h
-          [@x, @y, @w, @h] = [opts.x, opts.y, opts.w, opts.w]
-          surface = new Surface(@w, @h)
-          ctx = surface.context
-          ctx.fillStyle = '#A00'
-          ctx.fillRect 0, 0, @w, @h
-          @image = surface
-    
-      for i in [0 ... conf.cell_x]
-        p = i * conf.cell_w
-        p1 = p + conf.cell_w - 1
-        @addChild new Line({x: p,  y: 0, w: 1, h: 320})    # left
-        @addChild new Line({x: p1, y: 0, w: 1, h: 320})    # right
-  
-      for i in [0 ... conf.cell_y]
-        p = i * conf.cell_h
-        p1 = p + conf.cell_h - 1
-        @addChild new Line({x: 0, y: p,  w: 320, h: 1})    # top
-        @addChild new Line({x: 0, y: p1, w: 320, h: 1})    # bottom
-
   # クラス: パネル
   class Panel extends Sprite
-    constructor: (@conf, frame = 0, position = 0) ->
+    constructor: (@conf, @position = 0) ->
       super conf.cell_w, conf.cell_h
-      @image = game.assets[IMG_URL]
-      @frame = frame
-      @position = position
       @moved = false
+
+      surface = new Surface conf.cell_w, conf.cell_h
+      [sx0, sy0] = [ (position % 4) * conf.cell_w, (Math.floor(position / 4)) * conf.cell_h ]
+      surface.draw(game.assets[IMG_URL], sx0, sy0, conf.cell_w, conf.cell_h, 0, 0, conf.cell_w, conf.cell_h)
+      surface.context.rect(0, 0, conf.cell_w, conf.cell_h)
+      surface.context.strokeStyle = '#666666'
+      surface.context.stroke()
+      @image = surface
 
       #onTouchStart: ->
       @on "touchstart", ->
@@ -96,7 +70,7 @@ $ ->
                   @position = pos
                   @moved = true
                   @tl.moveTo( (@position % @conf.cell_x) * @conf.cell_w,
-                              ((@position / @conf.cell_x) | 0) * @conf.cell_h,
+                              Math.floor(@position / @conf.cell_x) * @conf.cell_h,
                               3, QUAD_EASEOUT)
                   @tl.then ->
                     @moved = false
@@ -129,7 +103,7 @@ $ ->
         @panels[i].position = i
         @panels[i].frame = i
         @panels[i].x = (@panels[i].position % @conf.cell_x) * @conf.cell_w
-        @panels[i].y = ((@panels[i].position / @conf.cell_x) | 0) * @conf.cell_h
+        @panels[i].y = Math.floor(@panels[i].position / @conf.cell_x) * @conf.cell_h
         @panels[i].moved = false
 
       # セルの入れ替えを繰り返して、シャフルする
@@ -153,13 +127,10 @@ $ ->
       for i in [0 ... @conf.celles]
         @panels[i].position = positions[i]
         @panels[i].x = (@panels[i].position % @conf.cell_x) * @conf.cell_w
-        @panels[i].y = ((@panels[i].position / @conf.cell_x) | 0) * @conf.cell_h
+        @panels[i].y = Math.floor(@panels[i].position / @conf.cell_x) * @conf.cell_h
 
       @panels[@hideCell_idx].x = @panels[@hideCell_idx].y = 320 unless @hideCell_idx is null
     
-      # グリッド表示
-      game.rootScene.addChild new Grid(@conf)
-
     checkFinish: ->
       isFinish = true
       for i in [0 ... @conf.celles]
@@ -168,7 +139,7 @@ $ ->
 
     gameover: ->
       @panels[@hideCell_idx].tl.moveTo( (@panels[@hideCell_idx].position % @conf.cell_x) * @conf.cell_w,
-                                       ((@panels[@hideCell_idx].position / @conf.cell_x) | 0) * @conf.cell_h,
+                                       Math.floor(@panels[@hideCell_idx].position / @conf.cell_x) * @conf.cell_h,
                                        game.fps / 2, QUAD_EASEOUT)
       @panels[@hideCell_idx].tl.then =>
         endTime = new Date().getTime() - game.startTime
@@ -250,7 +221,7 @@ $ ->
         $("#bgm-on").show()
         $("#bgm-off").hide()
         bgm.play()
-        bgm._element.loop = true  if bgm.element
+        bgm._element.loop = true  if bgm._element
         bgm.src.loop = true       if bgm.src
       else
         $("#bgm-on").hide()

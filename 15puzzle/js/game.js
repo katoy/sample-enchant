@@ -4,7 +4,7 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   $(function() {
-    var BGM_URL, Board, Grid, IMG_URL, PRELOAD_MATERIAL, Panel, conf, createEndScene, createStartScene, game, getConf, getParameterByName, rand, randInAry;
+    var BGM_URL, Board, IMG_URL, PRELOAD_MATERIAL, Panel, conf, createEndScene, createStartScene, game, getConf, getParameterByName, rand, randInAry;
 
     enchant();
     BGM_URL = './sounds/bgm01.wav';
@@ -33,99 +33,38 @@
     randInAry = function(ary) {
       return ary[rand(ary.length)];
     };
-    Grid = (function(_super) {
-      __extends(Grid, _super);
-
-      function Grid(conf) {
-        var Line, i, p, p1, _i, _j, _ref, _ref1;
-
-        Grid.__super__.constructor.call(this);
-        Line = (function(_super1) {
-          __extends(Line, _super1);
-
-          function Line(opts) {
-            var ctx, surface, _ref;
-
-            Line.__super__.constructor.call(this, opts.w, opts.h);
-            _ref = [opts.x, opts.y, opts.w, opts.w], this.x = _ref[0], this.y = _ref[1], this.w = _ref[2], this.h = _ref[3];
-            surface = new Surface(this.w, this.h);
-            ctx = surface.context;
-            ctx.fillStyle = '#A00';
-            ctx.fillRect(0, 0, this.w, this.h);
-            this.image = surface;
-          }
-
-          return Line;
-
-        })(Sprite);
-        for (i = _i = 0, _ref = conf.cell_x; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-          p = i * conf.cell_w;
-          p1 = p + conf.cell_w - 1;
-          this.addChild(new Line({
-            x: p,
-            y: 0,
-            w: 1,
-            h: 320
-          }));
-          this.addChild(new Line({
-            x: p1,
-            y: 0,
-            w: 1,
-            h: 320
-          }));
-        }
-        for (i = _j = 0, _ref1 = conf.cell_y; 0 <= _ref1 ? _j < _ref1 : _j > _ref1; i = 0 <= _ref1 ? ++_j : --_j) {
-          p = i * conf.cell_h;
-          p1 = p + conf.cell_h - 1;
-          this.addChild(new Line({
-            x: 0,
-            y: p,
-            w: 320,
-            h: 1
-          }));
-          this.addChild(new Line({
-            x: 0,
-            y: p1,
-            w: 320,
-            h: 1
-          }));
-        }
-      }
-
-      return Grid;
-
-    })(Group);
     Panel = (function(_super) {
       __extends(Panel, _super);
 
-      function Panel(conf, frame, position) {
+      function Panel(conf, position) {
+        var surface, sx0, sy0, _ref;
+
         this.conf = conf;
-        if (frame == null) {
-          frame = 0;
-        }
-        if (position == null) {
-          position = 0;
-        }
+        this.position = position != null ? position : 0;
         Panel.__super__.constructor.call(this, conf.cell_w, conf.cell_h);
-        this.image = game.assets[IMG_URL];
-        this.frame = frame;
-        this.position = position;
         this.moved = false;
+        surface = new Surface(conf.cell_w, conf.cell_h);
+        _ref = [(position % 4) * conf.cell_w, (Math.floor(position / 4)) * conf.cell_h], sx0 = _ref[0], sy0 = _ref[1];
+        surface.draw(game.assets[IMG_URL], sx0, sy0, conf.cell_w, conf.cell_h, 0, 0, conf.cell_w, conf.cell_h);
+        surface.context.rect(0, 0, conf.cell_w, conf.cell_h);
+        surface.context.strokeStyle = '#666666';
+        surface.context.stroke();
+        this.image = surface;
         this.on("touchstart", function() {
           if (!this.moved) {
             return this.tl.fadeTo(0.5, 1);
           }
         });
         this.on("touchend", function() {
-          var j, node, nodes, pos, x, y, _i, _len, _ref, _results;
+          var j, node, nodes, pos, x, y, _i, _len, _ref1, _results;
 
           if (!this.moved) {
             this.tl.fadeTo(1, 1);
             nodes = this.parentNode.childNodes;
-            _ref = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+            _ref1 = [[1, 0], [0, 1], [-1, 0], [0, -1]];
             _results = [];
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-              j = _ref[_i];
+            for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+              j = _ref1[_i];
               if (this.moved) {
                 break;
               }
@@ -142,7 +81,7 @@
                       node.position = this.position;
                       this.position = pos;
                       this.moved = true;
-                      this.tl.moveTo((this.position % this.conf.cell_x) * this.conf.cell_w, ((this.position / this.conf.cell_x) | 0) * this.conf.cell_h, 3, QUAD_EASEOUT);
+                      this.tl.moveTo((this.position % this.conf.cell_x) * this.conf.cell_w, Math.floor(this.position / this.conf.cell_x) * this.conf.cell_h, 3, QUAD_EASEOUT);
                       this.tl.then(function() {
                         this.moved = false;
                         return game.checkFinish();
@@ -208,7 +147,7 @@
           this.panels[i].position = i;
           this.panels[i].frame = i;
           this.panels[i].x = (this.panels[i].position % this.conf.cell_x) * this.conf.cell_w;
-          this.panels[i].y = ((this.panels[i].position / this.conf.cell_x) | 0) * this.conf.cell_h;
+          this.panels[i].y = Math.floor(this.panels[i].position / this.conf.cell_x) * this.conf.cell_h;
           this.panels[i].moved = false;
         }
         p = rand(this.conf.celles);
@@ -228,12 +167,11 @@
         for (i = _k = 0, _ref3 = this.conf.celles; 0 <= _ref3 ? _k < _ref3 : _k > _ref3; i = 0 <= _ref3 ? ++_k : --_k) {
           this.panels[i].position = positions[i];
           this.panels[i].x = (this.panels[i].position % this.conf.cell_x) * this.conf.cell_w;
-          this.panels[i].y = ((this.panels[i].position / this.conf.cell_x) | 0) * this.conf.cell_h;
+          this.panels[i].y = Math.floor(this.panels[i].position / this.conf.cell_x) * this.conf.cell_h;
         }
         if (this.hideCell_idx !== null) {
-          this.panels[this.hideCell_idx].x = this.panels[this.hideCell_idx].y = 320;
+          return this.panels[this.hideCell_idx].x = this.panels[this.hideCell_idx].y = 320;
         }
-        return game.rootScene.addChild(new Grid(this.conf));
       };
 
       Board.prototype.checkFinish = function() {
@@ -251,7 +189,7 @@
       Board.prototype.gameover = function() {
         var _this = this;
 
-        this.panels[this.hideCell_idx].tl.moveTo((this.panels[this.hideCell_idx].position % this.conf.cell_x) * this.conf.cell_w, ((this.panels[this.hideCell_idx].position / this.conf.cell_x) | 0) * this.conf.cell_h, game.fps / 2, QUAD_EASEOUT);
+        this.panels[this.hideCell_idx].tl.moveTo((this.panels[this.hideCell_idx].position % this.conf.cell_x) * this.conf.cell_w, Math.floor(this.panels[this.hideCell_idx].position / this.conf.cell_x) * this.conf.cell_h, game.fps / 2, QUAD_EASEOUT);
         return this.panels[this.hideCell_idx].tl.then(function() {
           var endScene, endTime;
 
@@ -346,7 +284,7 @@
           $("#bgm-on").show();
           $("#bgm-off").hide();
           bgm.play();
-          if (bgm.element) {
+          if (bgm._element) {
             bgm._element.loop = true;
           }
           if (bgm.src) {
