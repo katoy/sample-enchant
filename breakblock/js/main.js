@@ -12,11 +12,11 @@
     game.preload(["images/pad.png", "images/ball.png", "images/block.png", "sound/se1.mp3", "sound/se2.mp3"]);
     game.rootScene.backgroundColor = "blue";
     game.onload = function() {
-      var ball, blocks, drawBlocks, mySound, pad, score, scoreLabel, _ref, _ref1, _ref2, _ref3;
+      var ball, blocks, mySounds, pad, resetBlocks, score, scoreLabel, _ref, _ref1, _ref2, _ref3;
 
       score = 0;
-      mySound = [game.assets["sound/se1.mp3"], game.assets["sound/se2.mp3"]];
-      scoreLabel = new Label("SCORE : 0");
+      mySounds = [game.assets["sound/se1.mp3"], game.assets["sound/se2.mp3"]];
+      scoreLabel = new Label("SCORE : " + score);
       scoreLabel.font = "16px Tahoma";
       scoreLabel.color = "white";
       _ref = [10, 5], scoreLabel.x = _ref[0], scoreLabel.y = _ref[1];
@@ -27,12 +27,12 @@
       _ref2 = [1.5, 2.5], ball.dx = _ref2[0], ball.dy = _ref2[1];
       ball.speed = SPEED_INIT;
       game.rootScene.addChild(ball);
-      pad = new Sprite(240, 16);
+      pad = new Sprite(32, 16);
       pad.image = game.assets["images/pad.png"];
       _ref3 = [game.width / 2, game.height - 40], pad.x = _ref3[0], pad.y = _ref3[1];
       game.rootScene.addChild(pad);
       blocks = [];
-      drawBlocks = function() {
+      resetBlocks = function() {
         var blk, x, y, _i, _j, _ref4;
 
         blocks = [];
@@ -95,7 +95,7 @@
             if (ball.speed > SPEED_MAX) {
               ball.speed = SPEED_MAX;
             }
-            return mySound[1].play();
+            return mySounds[1].play();
           }
         };
         hitCheck_block_ball = function() {
@@ -108,12 +108,12 @@
               blk.parentNode.removeChild(blk);
               blocks.splice(idx, 1);
               score += 5;
-              mySound[0].play();
+              mySounds[0].play();
               break;
             }
           }
           if (blocks.length < 1) {
-            return drawBlocks();
+            return resetBlocks();
           }
         };
         moveBall();
@@ -122,7 +122,7 @@
         hitCheck_block_ball();
         return scoreLabel.text = "SCORE : " + score;
       });
-      drawBlocks();
+      resetBlocks();
       return window.addEventListener("deviceorientation", (function(evt) {
         return game.input.analogX = evt.gamma;
       }), false);
