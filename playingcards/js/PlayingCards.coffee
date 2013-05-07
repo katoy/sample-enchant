@@ -161,7 +161,7 @@ class PlayingCards
     throw "#--- illegal card:#{card}"  if card < 1 or PlayingCards.CARD_SIZE < card
     
     # マークを計算して返す。
-    Math.floor((card + PlayingCards.NUME_SIZE - 1) / PlayingCards.NUME_SIZE) + 1
+    Math.floor((card - 1) / PlayingCards.NUME_SIZE) + 1
   
   ###
   カードの番号取得
@@ -201,14 +201,14 @@ class PlayingCards
   num2name: (data, isShort = false) ->
     return "JOKER" if data is PlayingCards.JOKER
 
-    suit_name = ["x", "C", "D", "H", "S"]
-    num_short = ["x", "1", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K"]
+    suit_name = ["C", "D", "H", "S"]
+    num_short = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K"]
     s = @getSuit(data)
     n = @getNumber(data)
     if isShort
       "#{suit_name[s - 1]}#{n}"
     else
-      "#{suit_name[s - 1]}#{num_short[n]}"
+      "#{suit_name[s - 1]}#{num_short[n - 1]}"
 
   ###
   カードの番号 (1, 2, ... 13, ...) -> カード名 (C1, C2, ... CK, ...)
@@ -217,11 +217,11 @@ class PlayingCards
   num2longname: (data) ->
     return "JOKER" if data is PlayingCards.JOKER
 
-    suit_name = ["x", "Clubs", "Diamonds", "Hearts", "Spades"]
-    num_short = ["x", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"]
+    suit_name = ["Clubs", "Diamonds", "Hearts", "Spades"]
+    num_short = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"]
     s = @getSuit(data)
     n = @getNumber(data)
-    "#{num_short[n]} of #{suit_name[s - 1]}"
+    "#{num_short[n - 1]} of #{suit_name[s - 1]}"
 
   ###
   カード名 (C1, C2, ... CK, ...,)    -> カードの番号 (1, 2, ... 13, ...)

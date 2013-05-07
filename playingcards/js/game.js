@@ -269,7 +269,7 @@ PlayingCards.js
       if (card < 1 || PlayingCards.CARD_SIZE < card) {
         throw "#--- illegal card:" + card;
       }
-      return Math.floor((card + PlayingCards.NUME_SIZE - 1) / PlayingCards.NUME_SIZE) + 1;
+      return Math.floor((card - 1) / PlayingCards.NUME_SIZE) + 1;
     };
 
     /*
@@ -322,14 +322,14 @@ PlayingCards.js
       if (data === PlayingCards.JOKER) {
         return "JOKER";
       }
-      suit_name = ["x", "C", "D", "H", "S"];
-      num_short = ["x", "1", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K"];
+      suit_name = ["C", "D", "H", "S"];
+      num_short = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K"];
       s = this.getSuit(data);
       n = this.getNumber(data);
       if (isShort) {
         return "" + suit_name[s - 1] + n;
       } else {
-        return "" + suit_name[s - 1] + num_short[n];
+        return "" + suit_name[s - 1] + num_short[n - 1];
       }
     };
 
@@ -345,11 +345,11 @@ PlayingCards.js
       if (data === PlayingCards.JOKER) {
         return "JOKER";
       }
-      suit_name = ["x", "Clubs", "Diamonds", "Hearts", "Spades"];
-      num_short = ["x", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"];
+      suit_name = ["Clubs", "Diamonds", "Hearts", "Spades"];
+      num_short = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"];
       s = this.getSuit(data);
       n = this.getNumber(data);
-      return "" + num_short[n] + " of " + suit_name[s - 1];
+      return "" + num_short[n - 1] + " of " + suit_name[s - 1];
     };
 
     /*
