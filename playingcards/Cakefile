@@ -1,0 +1,27 @@
+exec = (require 'child_process').exec
+
+FILENAME = './js/game' # write your game title.
+FILES = [
+  './js/PlayingCards.coffee',
+  './js/main.coffee',
+]
+
+outputErr = (err, stdout, stderr) ->
+  throw err if err
+  console.log "#{stdout} #{stderr}" if stdout or stderr
+
+task 'setup', 'setup', ->
+  console.log "instaling coffeescript yuicompressor ..."
+  exec 'npm install coffeelint yuicompressor', outputErr
+
+task 'compile', "compile and minify #{FILENAME}.", (options) ->
+  exec "coffee -cj #{FILENAME}.js #{FILES.join ' '}", (err, stdout, stderr) ->
+    outputErr(err, stdout, stderr)
+    exec "./node_modules/.bin/yuicompressor #{FILENAME}.js > #{FILENAME}.min.js", (err, stdout, stderr) ->
+      outputErr(err, stdout, stderr)
+
+task 'lint' , "check usung coffeelint.", (options) ->
+  exec "./node_modules/.bin/coffeelint #{FILES.join ' '}", outputErr
+
+task 'clean', 'clean', ->
+  exec "rm -fr *~ #{FILENAME}.js #{FILENAME}.min.js", outputErr
