@@ -7,17 +7,17 @@ window.onload = ->
 
   core.onload = ->
     for s in [1 .. 4]
-     for n in [1 .. 13]
-       card = PCard.getSprite((s - 1) * 13 + n)
-       card.x = PlayingCards.WIDTH * (n - 1)
-       card.y = PlayingCards.HEIGHT * (s - 1)
-       #card.scaleX = 0.6;                
-       #card.scaleY = 0.6;
-       core.rootScene.addChild card
-       # カードをクリックしたら、裏返す
-       card.addEventListener 'touchend', ->
-         @frame = if @frame is 0 then 1 else 0
-         alert "clicked #{@name}"
+      for n in [1 .. 13]
+        card = PCard.getSprite((s - 1) * 13 + n)
+        card.x = PlayingCards.WIDTH * (n - 1)
+        card.y = PlayingCards.HEIGHT * (s - 1)
+        #card.scaleX = 0.6;
+        #card.scaleY = 0.6;
+        core.rootScene.addChild card
+        # カードをクリックしたら、裏返す
+        card.addEventListener 'touchend', ->
+          @frame = if @frame is 0 then 1 else 0
+          alert "clicked #{@name}"
   
     card = PCard.getSprite(PlayingCards.JOKER)
     card.x = PlayingCards.WIDTH * 0

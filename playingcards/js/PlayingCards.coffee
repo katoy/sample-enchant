@@ -91,7 +91,7 @@ class PlayingCards
   @S13: 52
   @JOKER: 53 # ジョーカー
 
-  # 別名 
+  # 別名
   @C1: @C01 # クローバー
   @C2: @C02
   @C3: @C03
@@ -184,10 +184,10 @@ class PlayingCards
   @param number  <int> カードの番号
   @return        カードの番号
   ###
-  getData: (suit, number) ->    
+  getData: (suit, number) ->
     # スーツ、または番号がジョーカーのときはジョーカーを返す。
     return PlayingCards.JOKER  if suit is 0 or number is 0
-    
+
     # スーツ、または番号が範囲外であったときはエラーを返す。
     throw "#--- illegal suit:#{suit}, number:#{number}" if suit < 1 or PlayingCards.SUIT_SIZE < suit or number <= 0 or PlayingCards.NUME_SIZE < number
     
@@ -198,7 +198,7 @@ class PlayingCards
   カードの番号 (1, 2, ... 13, ...) -> カード名 (C1, C2, ... CK, ...)
                53 -> JOKER
   ###
-  num2name: (data, isShort = false) ->
+  num2name: (data, isShort = true) ->
     return "JOKER" if data is PlayingCards.JOKER
 
     suit_name = ["C", "D", "H", "S"]
@@ -206,9 +206,9 @@ class PlayingCards
     s = @getSuit(data)
     n = @getNumber(data)
     if isShort
-      "#{suit_name[s - 1]}#{n}"
-    else
       "#{suit_name[s - 1]}#{num_short[n - 1]}"
+    else
+      "#{suit_name[s - 1]}#{n}"
 
   ###
   カードの番号 (1, 2, ... 13, ...) -> カード名 (C1, C2, ... CK, ...)
@@ -229,23 +229,23 @@ class PlayingCards
            JOKER -> 53
   ###
   name2num: (name) ->
-   return PlayingCards.JOKER if name is "JOKER"
+    return PlayingCards.JOKER if name is "JOKER"
 
-   suit = {"C":1, "D":2, "H":3, "S":4}
-   num1 = {"1": 1,   "2": 2,  "3": 3,  "4": 4,  "5": 5,  "6": 6,  "7": 7,  "8": 8,  "9": 9,  "T": 10,  "J": 11,  "Q": 12,  "K": 13}
-   num2 = {"01": 1, "02": 2, "03": 3, "04": 4, "05": 5, "06": 6, "07": 7, "08": 8, "09": 9, "10": 10, "11": 11, "12": 12, "13": 13}
+    suit = {"C":1, "D":2, "H":3, "S":4}
+    num1 = {"1": 1,   "2": 2,  "3": 3,  "4": 4,  "5": 5,  "6": 6,  "7": 7,  "8": 8,  "9": 9,  "T": 10,  "J": 11,  "Q": 12,  "K": 13}
+    num2 = {"01": 1, "02": 2, "03": 3, "04": 4, "05": 5, "06": 6, "07": 7, "08": 8, "09": 9, "10": 10, "11": 11, "12": 12, "13": 13}
 
-   chars = name.split("")
-   s = suit[chars[0]]
-   n = null
-   if chars.length is 2
-     n = num1["#{chars[1]}"]
-   else if chars.length is 3
-     n = num1["#{chars[1]}"]
-     n = num2["#{chars[1]}#{chars[2]}"]
+    chars = name.split("")
+    s = suit[chars[0]]
+    n = null
+    if chars.length is 2
+      n = num1["#{chars[1]}"]
+    else if chars.length is 3
+      n = num1["#{chars[1]}"]
+      n = num2["#{chars[1]}#{chars[2]}"]
 
-   throw "#--- illegal name #{name}" if s == null or n == null
-   return (s - 1) * PlayingCards.NUME_SIZE + n
+    throw "#--- illegal name #{name}" if s == null or n == null
+    return (s - 1) * PlayingCards.NUME_SIZE + n
 
   ###
   dataで指定したカード画像を取得
@@ -267,7 +267,7 @@ class PlayingCards
     card = new Sprite(width, height)
     card.image = new Surface(width * 2, height)
     card.data = data
-    card.name = @num2name(data, true)
+    card.name = @num2name(data)
     
     # 表の描画 (frame = 0)
     x = if (data is PlayingCards.JOKER) then 0                else (@getNumber(data) - 1) * (width + 1)
@@ -285,10 +285,10 @@ class PlayingCards
     deck
 
   shuffle: (cards) ->
-    i = cards.length;
+    i = cards.length
     while(i)
       j = Math.floor(Math.random() * i , 10)
       t = cards[--i]
-      cards[i] = cards[j];
+      cards[i] = cards[j]
       cards[j] = t
     cards

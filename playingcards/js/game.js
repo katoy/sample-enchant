@@ -317,7 +317,7 @@ PlayingCards.js
       var n, num_short, s, suit_name;
 
       if (isShort == null) {
-        isShort = false;
+        isShort = true;
       }
       if (data === PlayingCards.JOKER) {
         return "JOKER";
@@ -327,9 +327,9 @@ PlayingCards.js
       s = this.getSuit(data);
       n = this.getNumber(data);
       if (isShort) {
-        return "" + suit_name[s - 1] + n;
-      } else {
         return "" + suit_name[s - 1] + num_short[n - 1];
+      } else {
+        return "" + suit_name[s - 1] + n;
       }
     };
 
@@ -445,7 +445,7 @@ PlayingCards.js
       card = new Sprite(width, height);
       card.image = new Surface(width * 2, height);
       card.data = data;
-      card.name = this.num2name(data, true);
+      card.name = this.num2name(data);
       x = data === PlayingCards.JOKER ? 0 : (this.getNumber(data) - 1) * (width + 1);
       y = data === PlayingCards.JOKER ? 4 * (height + 1) : (this.getSuit(data) - 1) * (height + 1);
       card.image.draw(enchant.Game.instance.assets[PlayingCards.CARD], x, y, width, height, 0, 0, width, height);
