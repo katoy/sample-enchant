@@ -17,7 +17,7 @@ window.onload = ->
        # カードをクリックしたら、裏返す
        card.addEventListener 'touchend', ->
          @frame = if @frame is 0 then 1 else 0
-         alert "cliked #{PCard.getName(@data)}"
+         alert "clicked #{@name}"
   
     card = PCard.getSprite(PlayingCards.JOKER)
     card.x = PlayingCards.WIDTH * 0
@@ -27,6 +27,28 @@ window.onload = ->
     # カードをクリックしたら、裏返す
     card.addEventListener 'touchend', ->
       @frame = if @frame is 0 then 1 else 0
-      alert "cliked #{PCard.getName(@data)}"
+      alert "clicked #{@name}"
 
+    deck = PCard.deck()
+    console.log(deck.join(","))
+    deck = PCard.shuffle(deck)
+    console.log(deck.join(","))
+
+    console.log "C1  = #{PCard.name2num("C1")}"
+    console.log "CK  = #{PCard.name2num("CK")}"
+    console.log "SK  = #{PCard.name2num("SK")}"
+    console.log "C01 = #{PCard.name2num("C01")}"
+    console.log "C13 = #{PCard.name2num("C13")}"
+    console.log "S13 = #{PCard.name2num("S13")}"
+    console.log "JOKER = #{PCard.name2num("JOKER")}"
+
+    console.log " 1  = #{PCard.num2name(1)}"
+    console.log "13  = #{PCard.num2name(13)}"
+    console.log "52  = #{PCard.num2name(52)}"
+    console.log "53  = #{PCard.num2name(53)}"
+
+    console.log " 1  = #{PCard.num2longname(1)}"
+    console.log "13  = #{PCard.num2longname(13)}"
+    console.log "52  = #{PCard.num2longname(52)}"
+    console.log "53  = #{PCard.num2longname(53)}"
   core.start()

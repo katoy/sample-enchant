@@ -151,8 +151,6 @@ PlayingCards.js
 
     PlayingCards.JOKER = 53;
 
-    PlayingCards.CA = PlayingCards.C01;
-
     PlayingCards.C1 = PlayingCards.C01;
 
     PlayingCards.C2 = PlayingCards.C02;
@@ -178,8 +176,6 @@ PlayingCards.js
     PlayingCards.CQ = PlayingCards.C12;
 
     PlayingCards.CK = PlayingCards.C13;
-
-    PlayingCards.DA = PlayingCards.D01;
 
     PlayingCards.D1 = PlayingCards.D01;
 
@@ -207,8 +203,6 @@ PlayingCards.js
 
     PlayingCards.DK = PlayingCards.D13;
 
-    PlayingCards.HA = PlayingCards.H01;
-
     PlayingCards.H1 = PlayingCards.H01;
 
     PlayingCards.H2 = PlayingCards.H02;
@@ -234,8 +228,6 @@ PlayingCards.js
     PlayingCards.HQ = PlayingCards.H12;
 
     PlayingCards.HK = PlayingCards.C13;
-
-    PlayingCards.SA = PlayingCards.S01;
 
     PlayingCards.S1 = PlayingCards.S01;
 
@@ -277,7 +269,7 @@ PlayingCards.js
       if (card < 1 || PlayingCards.CARD_SIZE < card) {
         throw "#--- illegal card:" + card;
       }
-      return Math.floor((card + PlayingCards.NUME_SIZE - 1) / PlayingCards.NUME_SIZE);
+      return Math.floor((card + PlayingCards.NUME_SIZE - 1) / PlayingCards.NUME_SIZE) + 1;
     };
 
     /*
@@ -316,19 +308,112 @@ PlayingCards.js
     };
 
     /*
+    カードの番号 (1, 2, ... 13, ...) -> カード名 (C1, C2, ... CK, ...)
+                 53 -> JOKER
     */
 
 
-    PlayingCards.prototype.getName = function(data) {
-      var n, s, sname;
+    PlayingCards.prototype.num2name = function(data, isShort) {
+      var n, num_short, s, suit_name;
+
+      if (isShort == null) {
+        isShort = false;
+      }
+      if (data === PlayingCards.JOKER) {
+        return "JOKER";
+      }
+      suit_name = ["x", "C", "D", "H", "S"];
+      num_short = ["x", "1", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K"];
+      s = this.getSuit(data);
+      n = this.getNumber(data);
+      if (isShort) {
+        return "" + suit_name[s - 1] + n;
+      } else {
+        return "" + suit_name[s - 1] + num_short[n];
+      }
+    };
+
+    /*
+    カードの番号 (1, 2, ... 13, ...) -> カード名 (C1, C2, ... CK, ...)
+                 53 -> JOKER
+    */
+
+
+    PlayingCards.prototype.num2longname = function(data) {
+      var n, num_short, s, suit_name;
 
       if (data === PlayingCards.JOKER) {
         return "JOKER";
       }
-      sname = ["C", "D", "H", "S"];
+      suit_name = ["x", "Clubs", "Diamonds", "Hearts", "Spades"];
+      num_short = ["x", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"];
       s = this.getSuit(data);
       n = this.getNumber(data);
-      return "" + sname[s - 1] + n;
+      return "" + num_short[n] + " of " + suit_name[s - 1];
+    };
+
+    /*
+    カード名 (C1, C2, ... CK, ...,)    -> カードの番号 (1, 2, ... 13, ...)
+             (C01, C02, ... C13, ...,) -> カードの番号 (1, 2, ... 13, ...)
+             JOKER -> 53
+    */
+
+
+    PlayingCards.prototype.name2num = function(name) {
+      var chars, n, num1, num2, s, suit;
+
+      if (name === "JOKER") {
+        return PlayingCards.JOKER;
+      }
+      suit = {
+        "C": 1,
+        "D": 2,
+        "H": 3,
+        "S": 4
+      };
+      num1 = {
+        "1": 1,
+        "2": 2,
+        "3": 3,
+        "4": 4,
+        "5": 5,
+        "6": 6,
+        "7": 7,
+        "8": 8,
+        "9": 9,
+        "T": 10,
+        "J": 11,
+        "Q": 12,
+        "K": 13
+      };
+      num2 = {
+        "01": 1,
+        "02": 2,
+        "03": 3,
+        "04": 4,
+        "05": 5,
+        "06": 6,
+        "07": 7,
+        "08": 8,
+        "09": 9,
+        "10": 10,
+        "11": 11,
+        "12": 12,
+        "13": 13
+      };
+      chars = name.split("");
+      s = suit[chars[0]];
+      n = null;
+      if (chars.length === 2) {
+        n = num1["" + chars[1]];
+      } else if (chars.length === 3) {
+        n = num1["" + chars[1]];
+        n = num2["" + chars[1] + chars[2]];
+      }
+      if (s === null || n === null) {
+        throw "#--- illegal name " + name;
+      }
+      return (s - 1) * PlayingCards.NUME_SIZE + n;
     };
 
     /*
@@ -360,6 +445,7 @@ PlayingCards.js
       card = new Sprite(width, height);
       card.image = new Surface(width * 2, height);
       card.data = data;
+      card.name = this.num2name(data, true);
       x = data === PlayingCards.JOKER ? 0 : (this.getNumber(data) - 1) * (width + 1);
       y = data === PlayingCards.JOKER ? 4 * (height + 1) : (this.getSuit(data) - 1) * (height + 1);
       card.image.draw(enchant.Game.instance.assets[PlayingCards.CARD], x, y, width, height, 0, 0, width, height);
@@ -367,6 +453,29 @@ PlayingCards.js
       y = 4 * (height + 1);
       card.image.draw(enchant.Game.instance.assets[PlayingCards.CARD], x, y, width, height, width, 0, width, height);
       return card;
+    };
+
+    PlayingCards.prototype.deck = function() {
+      var deck, i, _i, _ref;
+
+      deck = [];
+      for (i = _i = 1, _ref = PlayingCards.CARD_SIZE; 1 <= _ref ? _i <= _ref : _i >= _ref; i = 1 <= _ref ? ++_i : --_i) {
+        deck.push(i);
+      }
+      return deck;
+    };
+
+    PlayingCards.prototype.shuffle = function(cards) {
+      var i, j, t;
+
+      i = cards.length;
+      while (i) {
+        j = Math.floor(Math.random() * i, 10);
+        t = cards[--i];
+        cards[i] = cards[j];
+        cards[j] = t;
+      }
+      return cards;
     };
 
     return PlayingCards;
@@ -381,7 +490,7 @@ PlayingCards.js
     core = new Core(PlayingCards.WIDTH * 13, PlayingCards.HEIGHT * 5);
     PCard = new PlayingCards(core);
     core.onload = function() {
-      var card, n, s, _i, _j;
+      var card, deck, n, s, _i, _j;
 
       for (s = _i = 1; _i <= 4; s = ++_i) {
         for (n = _j = 1; _j <= 13; n = ++_j) {
@@ -391,7 +500,7 @@ PlayingCards.js
           core.rootScene.addChild(card);
           card.addEventListener('touchend', function() {
             this.frame = this.frame === 0 ? 1 : 0;
-            return alert("cliked " + (PCard.getName(this.data)));
+            return alert("clicked " + this.name);
           });
         }
       }
@@ -400,10 +509,29 @@ PlayingCards.js
       card.y = PlayingCards.HEIGHT * 4;
       card.frame = 1;
       core.rootScene.addChild(card);
-      return card.addEventListener('touchend', function() {
+      card.addEventListener('touchend', function() {
         this.frame = this.frame === 0 ? 1 : 0;
-        return alert("cliked " + (PCard.getName(this.data)));
+        return alert("clicked " + this.name);
       });
+      deck = PCard.deck();
+      console.log(deck.join(","));
+      deck = PCard.shuffle(deck);
+      console.log(deck.join(","));
+      console.log("C1  = " + (PCard.name2num("C1")));
+      console.log("CK  = " + (PCard.name2num("CK")));
+      console.log("SK  = " + (PCard.name2num("SK")));
+      console.log("C01 = " + (PCard.name2num("C01")));
+      console.log("C13 = " + (PCard.name2num("C13")));
+      console.log("S13 = " + (PCard.name2num("S13")));
+      console.log("JOKER = " + (PCard.name2num("JOKER")));
+      console.log(" 1  = " + (PCard.num2name(1)));
+      console.log("13  = " + (PCard.num2name(13)));
+      console.log("52  = " + (PCard.num2name(52)));
+      console.log("53  = " + (PCard.num2name(53)));
+      console.log(" 1  = " + (PCard.num2longname(1)));
+      console.log("13  = " + (PCard.num2longname(13)));
+      console.log("52  = " + (PCard.num2longname(52)));
+      return console.log("53  = " + (PCard.num2longname(53)));
     };
     return core.start();
   };
