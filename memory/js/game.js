@@ -484,67 +484,85 @@ PlayingCards.js
   })();
 
   $(function() {
-    var PCard, cards, check_end, click_action, click_count, core, hideCard, hideTurnuped, opened_name, resetCards, shuffleCards, swapCards, turnCards, turndownCards;
+    var PCard, cards, check_end, click_action, click_count, core, isOnField, moveToDeck, opened_name, removeTurnuped, resetCards, shuffleCards, swapCards, turnCards, turndownCards;
 
     enchant();
-    core = new Core(PlayingCards.WIDTH * 13, PlayingCards.HEIGHT * 4);
+    core = new Core(PlayingCards.WIDTH * 13, PlayingCards.HEIGHT * 5);
     PCard = new PlayingCards(core);
     click_count = 0;
     opened_name = [];
     cards = [];
     swapCards = function(c1, c2) {};
-    hideCard = function(card) {
-      card.visible = false;
-      return card.y = -999;
+    moveToDeck = function(card) {
+      card.parentNode.removeChild(card);
+      card.tl.moveTo(PlayingCards.WIDTH * 6, PlayingCards.HEIGHT * 4, 12);
+      return core.rootScene.addChild(card);
+    };
+    isOnField = function(card) {
+      return card.y !== PlayingCards.HEIGHT * 4;
     };
     resetCards = function() {
-      var c, n, s, _i, _len;
+      var c, n, s, x, y, _i, _len;
 
       click_count = 0;
       for (_i = 0, _len = cards.length; _i < _len; _i++) {
         c = cards[_i];
         s = PCard.getSuit(c.data);
         n = PCard.getNumber(c.data);
-        c.x = PlayingCards.WIDTH * (n - 1);
-        c.y = PlayingCards.HEIGHT * (s - 1);
-        c.frame = 0;
-        c.visible = true;
+        x = PlayingCards.WIDTH * (n - 1);
+        y = PlayingCards.HEIGHT * (s - 1);
+        c.tl.moveTo(x, y, 12);
+        if (c.frame !== 0) {
+          c.tl.scaleTo(0.1, 1, 4);
+          c.tl.then(function() {
+            return this.frame = 0;
+          });
+          c.tl.scaleTo(1.0, 1, 4);
+        }
       }
       return null;
     };
     shuffleCards = function() {
-      var i, p, _i, _ref;
+      var c, p, x, y, _i, _len;
 
       cards = PCard.shuffle(cards);
       p = 0;
-      for (i = _i = 0, _ref = cards.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-        if (cards[i].visible) {
-          cards[i].x = (p % 13) * PlayingCards.WIDTH;
-          cards[i].y = Math.floor(p / 13) * PlayingCards.HEIGHT;
+      for (_i = 0, _len = cards.length; _i < _len; _i++) {
+        c = cards[_i];
+        if (isOnField(c)) {
+          x = (p % 13) * PlayingCards.WIDTH;
+          y = Math.floor(p / 13) * PlayingCards.HEIGHT;
+          c.tl.moveTo(x, y, 12);
           p++;
         }
       }
       return null;
     };
     turnCards = function(flag) {
-      var i, _i, _ref, _results;
+      var c, _i, _len;
 
-      _results = [];
-      for (i = _i = 0, _ref = cards.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-        _results.push(cards[i].frame = flag);
+      for (_i = 0, _len = cards.length; _i < _len; _i++) {
+        c = cards[_i];
+        if (isOnField(c) && c.frame !== flag) {
+          c.tl.scaleTo(0.1, 1, 4);
+          c.tl.then(function() {
+            return this.frame = flag;
+          });
+          c.tl.scaleTo(1.0, 1, 4);
+        }
       }
-      return _results;
+      return null;
     };
     turndownCards = function() {
       return turnCards(1);
     };
-    hideTurnuped = function() {
+    removeTurnuped = function() {
       var c, _i, _len, _ref;
 
       for (_i = 0, _len = cards.length; _i < _len; _i++) {
         c = cards[_i];
-        if (c.visible && (c.frame === 0) && (_ref = c.name, __indexOf.call(opened_name, _ref) >= 0)) {
-          hideCard(c);
+        if (isOnField(c) && (c.frame === 0) && (_ref = c.name, __indexOf.call(opened_name, _ref) >= 0)) {
+          moveToDeck(c);
         }
       }
       return null;
@@ -557,12 +575,16 @@ PlayingCards.js
         return;
       }
       click_count++;
-      card.frame = 0;
+      card.tl.scaleTo(0.1, 1, 5);
+      card.tl.then(function() {
+        return this.frame = 0;
+      });
+      card.tl.scaleTo(1.0, 1, 5);
       opened_name.push(PCard.num2name(card.data, true));
       if (opened_name.length === 2) {
         if (opened_name[0].charAt(1) === opened_name[1].charAt(1)) {
           return setTimeout(function() {
-            hideTurnuped();
+            removeTurnuped();
             opened_name = [];
             if (check_end()) {
               return alert("Game Overe. clicked = " + click_count);
@@ -584,7 +606,7 @@ PlayingCards.js
       }
       for (_i = 0, _len = cards.length; _i < _len; _i++) {
         c = cards[_i];
-        if (c.visible) {
+        if (isOnField(c)) {
           return false;
         }
       }

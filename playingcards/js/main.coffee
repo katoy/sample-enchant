@@ -26,8 +26,12 @@ window.onload = ->
     core.rootScene.addChild card
     # カードをクリックしたら、裏返す
     card.addEventListener 'touchend', ->
-      @frame = if @frame is 0 then 1 else 0
-      alert "clicked #{@name}"
+      fps = core.fps
+      @.tl.scaleTo(0.1, 1, fps * 0.1)
+      @.tl.then ->
+        @frame = if @frame is 0 then 1 else 0
+      @.tl.scaleTo(1.0, 1, fps * 0.1)
+      # alert "clicked #{@name}"
 
     deck = PCard.deck()
     console.log(deck.join(","))

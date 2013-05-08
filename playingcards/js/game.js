@@ -510,8 +510,14 @@ PlayingCards.js
       card.frame = 1;
       core.rootScene.addChild(card);
       card.addEventListener('touchend', function() {
-        this.frame = this.frame === 0 ? 1 : 0;
-        return alert("clicked " + this.name);
+        var fps;
+
+        fps = core.fps;
+        this.tl.scaleTo(0.1, 1, fps * 0.1);
+        this.tl.then(function() {
+          return this.frame = this.frame === 0 ? 1 : 0;
+        });
+        return this.tl.scaleTo(1.0, 1, fps * 0.1);
       });
       deck = PCard.deck();
       console.log(deck.join(","));
