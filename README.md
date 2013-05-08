@@ -6,8 +6,11 @@ enchant.js の練習です。
 - breakblock ブロック崩し  
 - invador    インベーダー  
 - playingcards トランプのカード表示練習  
+- memory 神経衰弱 (トランプゲーム)  
 
-   $ cake compile
+
+    $ cake setup
+    $ cake compile
 
 とすることで main.script から game.js として javascript に変換できます。
 
@@ -17,3 +20,4 @@ http://homepage2.nifty.com/youichi_kato/src/github/enchant/15puzzle/index.html
 http://homepage2.nifty.com/youichi_kato/src/github/enchant/breakblock/index.html  
 http://homepage2.nifty.com/youichi_kato/src/github/enchant/invador/index.html  
 http://homepage2.nifty.com/youichi_kato/src/github/enchant/playingcards/index.html  
+http://homepage2.nifty.com/youichi_kato/src/github/enchant/memory/index.html  
