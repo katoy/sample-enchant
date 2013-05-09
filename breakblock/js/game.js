@@ -3,33 +3,38 @@
   enchant();
 
   window.onload = function() {
-    var SPEED_INIT, SPEED_MAX, game;
+    var SPEED_INIT, SPEED_MAX, URL_BALL, URL_BLOCK, URL_PAD, URL_SOUND1, URL_SOUND2, game;
 
-    SPEED_INIT = 2;
-    SPEED_MAX = 5;
+    SPEED_INIT = 6;
+    SPEED_MAX = 20;
+    URL_PAD = 'images/pad.png';
+    URL_BALL = 'images/ball.png';
+    URL_BLOCK = 'images/block.png';
+    URL_SOUND1 = 'sound/se1.mp3';
+    URL_SOUND2 = 'sound/se2.mp3';
     game = new Game(240, 320);
     game.fps = 24;
-    game.preload(["images/pad.png", "images/ball.png", "images/block.png", "sound/se1.mp3", "sound/se2.mp3"]);
+    game.preload([URL_PAD, URL_BALL, URL_BLOCK, URL_SOUND1, URL_SOUND2]);
     game.rootScene.backgroundColor = "blue";
     game.onload = function() {
       var ball, blocks, mySounds, pad, resetBlocks, score, scoreLabel, _ref, _ref1, _ref2, _ref3;
 
       score = 0;
-      mySounds = [game.assets["sound/se1.mp3"], game.assets["sound/se2.mp3"]];
+      mySounds = [game.assets[URL_SOUND1], game.assets[URL_SOUND2]];
       scoreLabel = new Label("SCORE : " + score);
       scoreLabel.font = "16px Tahoma";
       scoreLabel.color = "white";
       _ref = [10, 5], scoreLabel.x = _ref[0], scoreLabel.y = _ref[1];
       game.rootScene.addChild(scoreLabel);
       ball = new Sprite(16, 16);
-      ball.image = game.assets["images/ball.png"];
+      ball.image = game.assets[URL_BALL];
       _ref1 = [0, 130], ball.x = _ref1[0], ball.y = _ref1[1];
-      _ref2 = [1.5, 2.5], ball.dx = _ref2[0], ball.dy = _ref2[1];
+      _ref2 = [1.5 / 3, 2.5 / 3], ball.dx = _ref2[0], ball.dy = _ref2[1];
       ball.speed = SPEED_INIT;
       game.rootScene.addChild(ball);
-      pad = new Sprite(32, 16);
-      pad.image = game.assets["images/pad.png"];
-      _ref3 = [game.width / 2, game.height - 40], pad.x = _ref3[0], pad.y = _ref3[1];
+      pad = new Sprite(32, 4);
+      pad.image = game.assets[URL_PAD];
+      _ref3 = [game.width / 2, game.height - 20], pad.x = _ref3[0], pad.y = _ref3[1];
       game.rootScene.addChild(pad);
       blocks = [];
       resetBlocks = function() {
@@ -39,7 +44,7 @@
         for (y = _i = 0; _i < 5; y = ++_i) {
           for (x = _j = 0; _j < 7; x = ++_j) {
             blk = new Sprite(24, 12);
-            blk.image = game.assets["images/block.png"];
+            blk.image = game.assets[URL_BLOCK];
             blk.frame = 0;
             _ref4 = [x * 32 + 12, y * 18 + 30], blk.x = _ref4[0], blk.y = _ref4[1];
             game.rootScene.addChild(blk);
@@ -54,11 +59,13 @@
         moveBall = function() {
           ball.x = ball.x + ball.dx * ball.speed;
           ball.y = ball.y + ball.dy * ball.speed;
-          if ((ball.x < 0) || (ball.x > (game.width - ball.width))) {
+          if ((ball.x <= 0) || (ball.x >= (game.width - ball.width))) {
             ball.dx = -ball.dx;
+            ball.x = ball.x <= 0 ? 0 : game.width - ball.width;
           }
           if (ball.y < 0) {
             ball.dy = -ball.dy;
+            ball.y = 0;
           }
           if (ball.y > game.height) {
             game.stop();
@@ -87,9 +94,13 @@
           }
         };
         hitCheck_paddle_ball = function() {
+          var rad;
+
           if (pad.intersect(ball)) {
-            ball.dy = -ball.dy;
-            ball.y = pad.y - ball.height - 1;
+            rad = Math.atan2(16, ball.x - pad.x - 10);
+            ball.dx = Math.cos(rad);
+            ball.dy = (-1) * Math.sin(rad);
+            ball.y = pad.y - ball.height;
             score += 10;
             ball.speed = ball.speed + 0.025;
             if (ball.speed > SPEED_MAX) {
