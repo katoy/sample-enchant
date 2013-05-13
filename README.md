@@ -7,6 +7,7 @@ enchant.js の練習です。
 - invador    インベーダー  
 - playingcards トランプのカード表示練習  
 - memory 神経衰弱 (トランプゲーム)  
+- tetris テトリス
 
 
     $ cake setup
@@ -21,3 +22,5 @@ http://homepage2.nifty.com/youichi_kato/src/github/enchant/breakblock/index.html
 http://homepage2.nifty.com/youichi_kato/src/github/enchant/invador/index.html  
 http://homepage2.nifty.com/youichi_kato/src/github/enchant/playingcards/index.html  
 http://homepage2.nifty.com/youichi_kato/src/github/enchant/memory/index.html  
+http://homepage2.nifty.com/youichi_kato/src/github/enchant/tetris/index.html  
+
