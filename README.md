@@ -6,9 +6,9 @@ enchant.js の練習です。
 - breakblock ブロック崩し  
 - invador    インベーダー  
 - playingcards トランプのカード表示練習  
-- memory 神経衰弱 (トランプゲーム)  
-- tetris テトリス
-
+- memory     神経衰弱 (トランプゲーム)  
+- tetris     テトリス  
+- reversi    リバーシ。 石をひっくり返すアニメーション、 undo/redo 機能、簡易コンピュター思考ルーチン   
 
     $ cake setup
     $ cake compile
@@ -23,4 +23,5 @@ http://homepage2.nifty.com/youichi_kato/src/github/enchant/invador/index.html
 http://homepage2.nifty.com/youichi_kato/src/github/enchant/playingcards/index.html  
 http://homepage2.nifty.com/youichi_kato/src/github/enchant/memory/index.html  
 http://homepage2.nifty.com/youichi_kato/src/github/enchant/tetris/index.html  
+http://homepage2.nifty.com/youichi_kato/src/github/enchant/reversi/index.html  
 

@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8"/>
+    <title>リバーシ</title>
+  </head>
+  <body style="background-color:#AAA;">
+
+    <table border = "0">
+      <tr>
+	<td>
+          <form name="myForm">
+            <font size="2">
+              先手 (黒)：<select name="first">
+                <option>プレイヤー</option>
+                <option>CUP 001</option>
+                <option>CUP 002</option>
+              </select>
+              後手 (白)：<select name="second">
+                <option>プレイヤー</option>
+                <option>CUP 001</option>
+                <option>CUP 002</option>
+              </select>　
+              <input type="button" value="スタート！" name="start" onclick="reversi.gameStart();"></input>
+              <br>
+              黒：<input type="text" size="1" value="2" name="black" readonly onchange="this.form.black.value = BlackStone"></input>　
+              白：<input type="text" size="1" value="2" name="white" readonly></input>
+              メッセージ：<input type="text" size="30" name="myMsg" readonly></input>
+            </font>
+          </form>
+	</td>
+      </tr>
+      <tr>
+	<td>
+	  <button onclick="reversi.historyTop();">|＜</button>
+	  <button onclick="reversi.history(-1);">＜</button>
+	  <button onclick="reversi.history(1);">＞</button>
+	  <button onclick="reversi.historyLast();">＞|</button>
+	  <button onclick="reversi.savePlay();">譜記を表示</button>
+	</td>
+
+      </tr>
+    </table>
+
+    <div id="enchant-stage" style="background-color:#129200;"></div>
+    <div>
+      See <a href="http://newtgecko.blog.fc2.com/blog-entry-168.html">http://newtgecko.blog.fc2.com/blog-entry-168.html</a><br/>
+      coffeescript のコード： <a href="./js/main.coffee">main.coffee</a> <a href="./js/Reversi.coffee">Reversi.coffee</a>
+    </div>
+    
+    <script src='../enchant.js'></script>
+    <script src='./js/game.js'></script>
+    
+  </body>
+</html>
