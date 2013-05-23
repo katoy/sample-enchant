@@ -191,7 +191,7 @@ class Reversi
       # CPU の手
       if ((@turn is 1 and @players[0] > 0) or (@turn is -1 and @players[1] > 0)) and (@replay_mode is false)
         cpuID = if @turn is 1 then @players[0] - 1 else @players[1] - 1
-        cpuPut = @cpus[cpuID].play(@BoardState.slice(0), canPuts.slice(0))  # slice(0) をつかって clone したものを渡す。
+        cpuPut = @cpus[cpuID].play(@BoardState.slice(0), {turn:@turn, canPuts:canPuts.slice(0)})  # slice(0) をつかって clone したものを渡す。
         @putStone(cpuPut, {delay:opts.delay + 0.8, turn:@turn}) if cpuPut != null
 
   # 打った手 (turn, x, y) を記録する。(turn in [1, -1], x in [1..8], y in [1..8])
@@ -251,7 +251,7 @@ class Reversi
       canPut = @checkInvert()
       # CPU が打つ
       if @players[0] > 0 and canPut.length > 0
-        @putStone(@cpus[@players[0] - 1].play(@BoardState.slice(0), canPut.slice(0))) # slice(0) をつかって clone したものを渡す。
+        @putStone(@cpus[@players[0] - 1].play(@BoardState.slice(0), {turn:@turn, canPuts:canPut.slice(0)})) # slice(0) をつかって clone したものを渡す。
     else
       # やりなおす
       if confirm("本当にやり直しますか？")

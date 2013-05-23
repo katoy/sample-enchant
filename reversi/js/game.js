@@ -248,7 +248,10 @@
         }
         if (((this.turn === 1 && this.players[0] > 0) || (this.turn === -1 && this.players[1] > 0)) && (this.replay_mode === false)) {
           cpuID = this.turn === 1 ? this.players[0] - 1 : this.players[1] - 1;
-          cpuPut = this.cpus[cpuID].play(this.BoardState.slice(0), canPuts.slice(0));
+          cpuPut = this.cpus[cpuID].play(this.BoardState.slice(0), {
+            turn: this.turn,
+            canPuts: canPuts.slice(0)
+          });
           if (cpuPut !== null) {
             return this.putStone(cpuPut, {
               delay: opts.delay + 0.8,
@@ -341,7 +344,10 @@
         setStatMessage("やりなおす");
         canPut = this.checkInvert();
         if (this.players[0] > 0 && canPut.length > 0) {
-          return this.putStone(this.cpus[this.players[0] - 1].play(this.BoardState.slice(0), canPut.slice(0)));
+          return this.putStone(this.cpus[this.players[0] - 1].play(this.BoardState.slice(0), {
+            turn: this.turn,
+            canPuts: canPut.slice(0)
+          }));
         }
       } else {
         if (confirm("本当にやり直しますか？")) {
@@ -371,11 +377,14 @@
   AI_001 = (function() {
     function AI_001() {}
 
-    AI_001.prototype.play = function(boardState, canPuts) {
-      if (canPuts.length === 0) {
+    AI_001.prototype.play = function(boardState, opts) {
+      if (opts == null) {
+        opts = {};
+      }
+      if (opts.canPuts.length === 0) {
         return null;
       } else {
-        return canPuts[0];
+        return opts.canPuts[0];
       }
     };
 
@@ -386,11 +395,14 @@
   AI_002 = (function() {
     function AI_002() {}
 
-    AI_002.prototype.play = function(boardState, canPuts) {
-      if (canPuts.length === 0) {
+    AI_002.prototype.play = function(boardState, opts) {
+      if (opts == null) {
+        opts = {};
+      }
+      if (opts.canPuts.length === 0) {
         return null;
       } else {
-        return canPuts[Math.floor(Math.random() * canPuts.length)];
+        return opts.canPuts[Math.floor(Math.random() * opts.canPuts.length)];
       }
     };
 

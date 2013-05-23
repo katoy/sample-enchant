@@ -5,14 +5,14 @@ enchant()
 # canPos[]      置くことができる候補 ([0 ... 63] の範囲の値)
 class AI_001
   # 次に打つ手 [0 ... 64] を返す。
-  play : (boardState, canPuts) ->
-    if canPuts.length is 0 then null else canPuts[0]
+  play : (boardState, opts = {}) ->
+    if opts.canPuts.length is 0 then null else opts.canPuts[0]
 
 # CPU: 置ける場所候補からランダムに選ぶ
 class AI_002
   # 次に打つ手 [0 ... 64] を返す。
-  play: (boardState, canPuts) ->
-    if canPuts.length is 0 then null else canPuts[Math.floor(Math.random() * canPuts.length)]
+  play: (boardState, opts ={}) ->
+    if opts.canPuts.length is 0 then null else opts.canPuts[Math.floor(Math.random() * opts.canPuts.length)]
 
 window.onload = ->
   game_size = 8               # 盤面の一辺のマスの数  (8 以外ｎ整数も指定可能)
