@@ -13,13 +13,23 @@
             <font size="2">
               先手 (黒)：<select name="first">
                 <option>プレイヤー</option>
-                <option>CUP 001</option>
-                <option>CUP 002</option>
+                <option>CUP First</option>
+                <option>CUP Random</option>
+                <option>CUP Gain</option>
+		<!--
+                <option>CUP Montcarlo</option>
+                <option>CUP Minmax</option>
+		-->
               </select>
               後手 (白)：<select name="second">
                 <option>プレイヤー</option>
-                <option>CUP 001</option>
-                <option>CUP 002</option>
+                <option>CUP First</option>
+                <option>CUP Random</option>
+                <option>CUP Gain</option>
+		<!--
+                <option>CUP Montcarlo</option>
+                <option>CUP Minmax</option>
+		-->
               </select>　
               <input type="button" value="スタート！" name="start" onclick="reversi.gameStart();"></input>
               <br>
@@ -44,7 +54,9 @@
 
     <div id="enchant-stage" style="background-color:#129200;"></div>
     <div>
-      See <a href="http://newtgecko.blog.fc2.com/blog-entry-168.html">http://newtgecko.blog.fc2.com/blog-entry-168.html</a><br/>
+      See 
+      <a href="http://newtgecko.blog.fc2.com/blog-entry-168.html">http://newtgecko.blog.fc2.com/blog-entry-168.html</a><br/>
+      <a href="https://github.com/fkazunobu/Reversi-Ruby">https://github.com/fkazunobu/Reversi-Ruby (CPU 思考ルーチン)</a><br/>
       coffeescript のコード： <a href="./js/main.coffee">main.coffee</a> <a href="./js/Reversi.coffee">Reversi.coffee</a>
     </div>
     

@@ -6,7 +6,7 @@
 
 
 (function() {
-  var AI_001, AI_002, Reversi;
+  var AI_First, AI_Gain, AI_Random, Reversi;
 
   Reversi = (function() {
     var dXY, setMessage, setStatMessage;
@@ -108,19 +108,20 @@
     };
 
     Reversi.prototype.checkInvert = function() {
-      var c, canPuts, ddx, ddy, dx, dy, i, pos, x, y, _i, _j, _ref, _ref1, _ref2, _ref3, _ref4, _ref5;
+      var c, canPuts, ddx, ddy, dx, dy, i, pos, turnX, x, y, _i, _j, _ref, _ref1, _ref2, _ref3, _ref4, _ref5;
 
       canPuts = [];
+      turnX = (-1) * this.turn;
       for (pos = _i = 0, _ref = this.num_stone; 0 <= _ref ? _i < _ref : _i > _ref; pos = 0 <= _ref ? ++_i : --_i) {
         if (this.BoardState[pos] === 0) {
           _ref1 = this.pos2xy(pos), x = _ref1[0], y = _ref1[1];
           for (i = _j = 0, _ref2 = dXY.length; 0 <= _ref2 ? _j < _ref2 : _j > _ref2; i = 0 <= _ref2 ? ++_j : --_j) {
             _ref3 = [dXY[i][0], dXY[i][1]], dx = _ref3[0], dy = _ref3[1];
             _ref4 = [1, dx, dy], c = _ref4[0], ddx = _ref4[1], ddy = _ref4[2];
-            while (this.isInBoard(x + ddx, y + ddy) && (this.BoardState[this.xy2pos(x + ddx, y + ddy)] === (-1 * this.turn))) {
+            while (this.isInBoard(x + ddx, y + ddy) && (this.BoardState[this.xy2pos(x + ddx, y + ddy)] === turnX)) {
               _ref5 = [c + 1, ddx + dx, ddy + dy], c = _ref5[0], ddx = _ref5[1], ddy = _ref5[2];
             }
-            if ((this.BoardState[this.xy2pos(x + ddx, y + ddy)] === this.turn) && (c > 1)) {
+            if (this.isInBoard(x + ddx, y + ddy) && (this.BoardState[this.xy2pos(x + ddx, y + ddy)] === this.turn) && (c > 1)) {
               this.BoardState[pos] = 2;
               this.SPRITES[pos].frame = (this.turn > 0 ? 3 : 4);
               canPuts.push(pos);
@@ -132,8 +133,8 @@
       return canPuts;
     };
 
-    Reversi.prototype.setStone = function(stone, opts) {
-      var next_frame;
+    Reversi.prototype.showStone = function(stone, opts) {
+      var next_frame, x, y, _ref, _ref1, _ref2;
 
       if (opts == null) {
         opts = {
@@ -141,37 +142,32 @@
           turn: this.turn
         };
       }
-      next_frame = opts.turn === 1 ? 1 : 2;
-      if ((this.players[0] > 0 && this.players[1] > 0) || (this.replay_mode === true)) {
-        return stone.frame = next_frame;
-      } else {
-        return stone.tl.delay(opts.delay * this.fps).then(function() {
-          return this.frame = next_frame;
-        });
-      }
-    };
-
-    Reversi.prototype.turnStone = function(stone, opts) {
-      var next_frame;
-
-      if (opts == null) {
-        opts = {
-          delay: 0.4,
-          turn: this.turn
-        };
+      _ref = [null, null], x = _ref[0], y = _ref[1];
+      if (opts.pos) {
+        _ref1 = this.pos2xy(opts.pos), x = _ref1[0], y = _ref1[1];
+        _ref2 = [x + 1, y + 1], x = _ref2[0], y = _ref2[1];
       }
       next_frame = opts.turn === 1 ? 1 : 2;
       if ((this.players[0] > 0 && this.players[1] > 0) || (this.replay_mode === true)) {
+        console.log("--- showStone[" + x + ", " + y + "] immediatory");
         return stone.frame = next_frame;
       } else {
-        return stone.tl.delay(opts.delay * this.fps).scaleTo(0.1 * this.scale, this.scale, 0.2 * this.fps).then(function() {
-          return this.frame = next_frame;
-        }).scaleTo(this.scale, this.scale, this.fps * 0.2);
+        if (stone.frame !== 0) {
+          console.log("--- showStone[" + x + ", " + y + "] (turn) delay " + opts.delay);
+          return stone.tl.delay(opts.delay * this.fps).scaleTo(0.1 * this.scale, this.scale, 0.2 * this.fps).then(function() {
+            return this.frame = next_frame;
+          }).scaleTo(this.scale, this.scale, this.fps * 0.2);
+        } else {
+          console.log("--- showStone[" + x + ", " + y + "] (set) delay " + opts.delay);
+          return stone.tl.delay(opts.delay * this.fps).then(function() {
+            return this.frame = next_frame;
+          });
+        }
       }
     };
 
     Reversi.prototype.putStone = function(pos, opts) {
-      var c, canPuts, cpuID, cpuPut, ddx, ddy, dx, dy, i, x, y, _i, _j, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7;
+      var c, canPuts, cpuID, cpuPut, ddx, ddy, dx, dy, i, turnPos, turnX, x, y, _i, _j, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7;
 
       if (opts == null) {
         opts = {
@@ -181,7 +177,7 @@
       }
       if (!this.start) {
         return setMessage("[スタート！]を押してください！");
-      } else if (this.BoardState[pos] !== 2 && this.replay_mode === false) {
+      } else if ((this.replay_mode === false) && (this.BoardState[pos] !== 2)) {
         return setMessage("置けません！");
       } else {
         for (i = _i = 0, _ref = this.num_stone; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
@@ -193,13 +189,14 @@
         _ref1 = this.pos2xy(pos), x = _ref1[0], y = _ref1[1];
         setMessage("(" + (x + 1) + ", " + (y + 1) + ") に置きました！");
         this.recordPlay([this.turn, x + 1, y + 1]);
+        turnX = (-1) * this.turn;
         for (i = _j = 0, _ref2 = dXY.length; 0 <= _ref2 ? _j < _ref2 : _j > _ref2; i = 0 <= _ref2 ? ++_j : --_j) {
           _ref3 = [dXY[i][0], dXY[i][1]], dx = _ref3[0], dy = _ref3[1];
           _ref4 = [1, dx, dy], c = _ref4[0], ddx = _ref4[1], ddy = _ref4[2];
-          while (this.isInBoard(x + ddx, y + ddy) && (this.BoardState[this.xy2pos(x + ddx, y + ddy)] === (this.turn * -1))) {
+          while (this.isInBoard(x + ddx, y + ddy) && (this.BoardState[this.xy2pos(x + ddx, y + ddy)] === turnX)) {
             _ref5 = [c + 1, ddx + dx, ddy + dy], c = _ref5[0], ddx = _ref5[1], ddy = _ref5[2];
           }
-          if (this.BoardState[this.xy2pos(x + ddx, y + ddy)] === this.turn) {
+          if (this.isInBoard(x + ddx, y + ddy) && (this.BoardState[this.xy2pos(x + ddx, y + ddy)] === this.turn)) {
             _ref6 = [c - 1, ddx - dx, ddy - dy], c = _ref6[0], ddx = _ref6[1], ddy = _ref6[2];
             while (c > 0) {
               this.BoardState[this.xy2pos(x + ddx, y + ddy)] = this.turn;
@@ -210,9 +207,11 @@
                 this.WhiteStone++;
                 this.BlackStone--;
               }
-              this.turnStone(this.SPRITES[this.xy2pos(x + ddx, y + ddy)], {
+              turnPos = this.xy2pos(x + ddx, y + ddy);
+              this.showStone(this.SPRITES[turnPos], {
                 delay: opts.delay + 0.3,
-                turn: this.turn
+                turn: this.turn,
+                pos: turnPos
               });
               _ref7 = [c - 1, ddx - dx, ddy - dy], c = _ref7[0], ddx = _ref7[1], ddy = _ref7[2];
             }
@@ -222,9 +221,10 @@
         if (!this.SPRITES[pos]) {
           alert(pos);
         }
-        this.setStone(this.SPRITES[pos], {
+        this.showStone(this.SPRITES[pos], {
           delay: opts.delay,
-          turn: this.turn
+          turn: this.turn,
+          pos: pos
         });
         if (this.turn > 0) {
           this.BlackStone++;
@@ -333,7 +333,7 @@
     };
 
     Reversi.prototype.gameStart = function() {
-      var canPut;
+      var canPuts;
 
       if (!this.start) {
         this.setPlayers();
@@ -342,11 +342,11 @@
         this.play_pos = 0;
         setMessage("ゲームスタート！！");
         setStatMessage("やりなおす");
-        canPut = this.checkInvert();
-        if (this.players[0] > 0 && canPut.length > 0) {
+        canPuts = this.checkInvert();
+        if (this.players[0] > 0 && canPuts.length > 0) {
           return this.putStone(this.cpus[this.players[0] - 1].play(this.BoardState.slice(0), {
             turn: this.turn,
-            canPuts: canPut.slice(0)
+            canPuts: canPuts.slice(0)
           }));
         }
       } else {
@@ -374,42 +374,6 @@
 
   enchant();
 
-  AI_001 = (function() {
-    function AI_001() {}
-
-    AI_001.prototype.play = function(boardState, opts) {
-      if (opts == null) {
-        opts = {};
-      }
-      if (opts.canPuts.length === 0) {
-        return null;
-      } else {
-        return opts.canPuts[0];
-      }
-    };
-
-    return AI_001;
-
-  })();
-
-  AI_002 = (function() {
-    function AI_002() {}
-
-    AI_002.prototype.play = function(boardState, opts) {
-      if (opts == null) {
-        opts = {};
-      }
-      if (opts.canPuts.length === 0) {
-        return null;
-      } else {
-        return opts.canPuts[Math.floor(Math.random() * opts.canPuts.length)];
-      }
-    };
-
-    return AI_002;
-
-  })();
-
   window.onload = function() {
     var core, game_board_width, game_size, reversi;
 
@@ -418,7 +382,7 @@
     core = new Core(game_board_width + 10, game_board_width + 10);
     reversi = new Reversi(core, game_size, Math.floor(game_board_width / game_size));
     this.reversi = reversi;
-    reversi.setCPUs([new AI_001(), new AI_002()].slice(0));
+    reversi.setCPUs([new AI_First(), new AI_Random(), new AI_Gain()].slice(0));
     core.onload = function() {
       var board, stone, _i, _len, _results;
 
@@ -437,5 +401,138 @@
     };
     return core.start();
   };
+
+  AI_First = (function() {
+    function AI_First() {}
+
+    AI_First.prototype.play = function(boardState, opts) {
+      if (opts == null) {
+        opts = {};
+      }
+      if (opts.canPuts.length === 0) {
+        return null;
+      } else {
+        return opts.canPuts[0];
+      }
+    };
+
+    return AI_First;
+
+  })();
+
+  AI_Random = (function() {
+    function AI_Random() {}
+
+    AI_Random.prototype.play = function(boardState, opts) {
+      if (opts == null) {
+        opts = {};
+      }
+      if (opts.canPuts.length === 0) {
+        return null;
+      } else {
+        return opts.canPuts[Math.floor(Math.random() * opts.canPuts.length)];
+      }
+    };
+
+    return AI_Random;
+
+  })();
+
+  AI_Gain = (function() {
+    var dXY;
+
+    function AI_Gain() {}
+
+    dXY = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
+
+    AI_Gain.prototype.numStone = 64;
+
+    AI_Gain.prototype.gameSize = 8;
+
+    AI_Gain.prototype.play = function(boardState, opts) {
+      var ans, gainMax, gains, i, pos, score, turn, _i, _j, _len, _ref, _ref1;
+
+      if (opts == null) {
+        opts = {};
+      }
+      turn = opts.turn;
+      ans = null;
+      gains = {};
+      gainMax = -1;
+      for (i = _i = 0, _ref = this.numStone; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+        if (boardState[i] === 2) {
+          boardState[i] = 0;
+        }
+      }
+      _ref1 = opts.canPuts;
+      for (_j = 0, _len = _ref1.length; _j < _len; _j++) {
+        pos = _ref1[_j];
+        score = this.putStone(boardState, pos, turn, false);
+        if (gainMax < score) {
+          gainMax = score;
+        }
+        if (gains[score]) {
+          gains[score].push(pos);
+        } else {
+          gains[score] = [pos];
+        }
+      }
+      console.log(gains);
+      if (gainMax <= 0) {
+        return null;
+      }
+      return gains[gainMax][Math.floor(Math.random() * gains[gainMax].length)];
+    };
+
+    AI_Gain.prototype.xy2pos = function(x, y) {
+      return x + y * this.gameSize;
+    };
+
+    AI_Gain.prototype.pos2xy = function(pos) {
+      return [pos % this.gameSize, Math.floor(pos / this.gameSize)];
+    };
+
+    AI_Gain.prototype.isInBoard = function(x, y) {
+      return (x >= 0) && (x < this.gameSize) && (y >= 0) && (y < this.gameSize);
+    };
+
+    AI_Gain.prototype.putStone = function(boardState, pos, turn, doTurn) {
+      var c, ddx, ddy, dx, dy, gain, i, turnX, x, y, _i, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6;
+
+      if (doTurn == null) {
+        doTurn = false;
+      }
+      if (boardState[pos] !== 0) {
+        return -1;
+      }
+      turnX = turn * (-1);
+      gain = 0;
+      _ref = this.pos2xy(pos), x = _ref[0], y = _ref[1];
+      for (i = _i = 0, _ref1 = dXY.length; 0 <= _ref1 ? _i < _ref1 : _i > _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
+        _ref2 = [dXY[i][0], dXY[i][1]], dx = _ref2[0], dy = _ref2[1];
+        _ref3 = [1, dx, dy], c = _ref3[0], ddx = _ref3[1], ddy = _ref3[2];
+        while (this.isInBoard(x + ddx, y + ddy) && (boardState[this.xy2pos(x + ddx, y + ddy)] === turnX)) {
+          _ref4 = [c + 1, ddx + dx, ddy + dy], c = _ref4[0], ddx = _ref4[1], ddy = _ref4[2];
+        }
+        if (boardState[this.xy2pos(x + ddx, y + ddy)] === turn) {
+          _ref5 = [c - 1, ddx - dx, ddy - dy], c = _ref5[0], ddx = _ref5[1], ddy = _ref5[2];
+          while (c > 0) {
+            if (doTurn) {
+              boardState[this.xy2pos(x + ddx, y + ddy)] = turn;
+            }
+            _ref6 = [c - 1, ddx - dx, ddy - dy], c = _ref6[0], ddx = _ref6[1], ddy = _ref6[2];
+            gain++;
+          }
+        }
+      }
+      if (doTurn) {
+        boardState[pos] = turn;
+      }
+      return gain;
+    };
+
+    return AI_Gain;
+
+  })();
 
 }).call(this);

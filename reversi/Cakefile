@@ -4,6 +4,11 @@ FILENAME = './js/game' # write your game title.
 FILES = [
   './js/Reversi.coffee',
   './js/main.coffee',
+  './js/ai_first.coffee',
+  './js/ai_random.coffee',
+  './js/ai_gain.coffee',
+  #'./js/ai_montecarlo.coffee',
+  #'./js/ai_minmax.coffee',
 ]
 
 outputErr = (err, stdout, stderr) ->

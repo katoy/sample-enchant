@@ -87,45 +87,49 @@ class Reversi
   # 置ける場所を検索する。
   checkInvert: ->
     canPuts = []   # 置ける場所 (pos) を格納する配列
+    turnX = (-1) * @turn 
     for pos in [0 ... @num_stone]
       if @BoardState[pos] is 0
         [x, y] = @pos2xy(pos)
         for i in [0 ... dXY.length]
           [dx, dy] = [dXY[i][0], dXY[i][1]]
           [c, ddx, ddy] = [1, dx, dy]
-          while @isInBoard(x + ddx, y + ddy) and (@BoardState[@xy2pos(x + ddx, y + ddy)] is (-1 * @turn))
+          while @isInBoard(x + ddx, y + ddy) and (@BoardState[@xy2pos(x + ddx, y + ddy)] is turnX)
             [c, ddx, ddy] = [c + 1, ddx + dx, ddy + dy]
 
-          if (@BoardState[@xy2pos(x + ddx,  y + ddy)] is @turn) and (c > 1)
+          if @isInBoard(x + ddx, y + ddy) and (@BoardState[@xy2pos(x + ddx,  y + ddy)] is @turn) and (c > 1)
             @BoardState[pos] = 2
             @SPRITES[pos].frame = (if (@turn > 0) then 3 else 4)
             canPuts.push pos
             break
     canPuts
 
-  setStone: (stone, opts = {delay: 0, turn:@turn}) ->
+  showStone: (stone, opts = {delay: 0, turn:@turn}) ->
+    [x, y] = [null, null]
+    if opts.pos
+      [x, y] = @pos2xy(opts.pos)
+      [x, y] = [x + 1, y + 1] 
+
     next_frame = if (opts.turn is 1) then 1 else 2
     if (@players[0] > 0 and @players[1] > 0) or (@replay_mode is true)
+      console.log "--- showStone[#{x}, #{y}] immediatory"
       stone.frame = next_frame
     else
-      stone.tl.delay(opts.delay * @fps).then ->
-        @frame = next_frame
-  
-  turnStone: (stone, opts = {delay:0.4, turn:@turn}) ->
-    # @SPRITES[pos].frame = (if (@turn > 0) then 1 else 2)
-    next_frame = if (opts.turn is 1) then 1 else 2
-    if (@players[0] > 0 and @players[1] > 0) or (@replay_mode is true)
-      stone.frame = next_frame
-    else
-      stone.tl.delay(opts.delay * @fps).scaleTo(0.1 * @scale, @scale, 0.2 * @fps).then ->
-        @frame = next_frame
-      .scaleTo(@scale, @scale, @fps * 0.2)
+      if (stone.frame isnt 0)
+        console.log "--- showStone[#{x}, #{y}] (turn) delay #{opts.delay}"
+        stone.tl.delay(opts.delay * @fps).scaleTo(0.1 * @scale, @scale, 0.2 * @fps).then ->
+          @frame = next_frame
+        .scaleTo(@scale, @scale, @fps * 0.2)
+      else
+        console.log "--- showStone[#{x}, #{y}] (set) delay #{opts.delay}"
+        stone.tl.delay(opts.delay * @fps).then ->
+          @frame = next_frame
 
   # 置いたとき
   putStone: (pos, opts = {delay:0, turn:@turn}) ->
     unless @start
       setMessage "[スタート！]を押してください！"
-    else if @BoardState[pos] isnt 2 and @replay_mode is false
+    else if (@replay_mode is false) and (@BoardState[pos] isnt 2)
       setMessage "置けません！"
     else
       #  BoardState[0-64]までの2（置ける場所）を削除
@@ -140,13 +144,14 @@ class Reversi
       @recordPlay [@turn, x + 1, y + 1]   # プレーを記録
      
       # ヒックリ返す石のカウント（c が返す数）
+      turnX = (-1) * @turn
       for i in [0 ... dXY.length]
         [dx, dy] = [dXY[i][0], dXY[i][1]]
         [c, ddx, ddy] = [1, dx, dy]
-        while @isInBoard(x + ddx, y + ddy) and (@BoardState[@xy2pos(x + ddx, y + ddy)] is (@turn * -1))
+        while @isInBoard(x + ddx, y + ddy) and (@BoardState[@xy2pos(x + ddx, y + ddy)] is turnX)
           [c, ddx, ddy] = [c + 1, ddx + dx, ddy + dy]
 
-        if @BoardState[@xy2pos(x + ddx, y + ddy)] is @turn
+        if @isInBoard(x + ddx, y + ddy) and (@BoardState[@xy2pos(x + ddx, y + ddy)] is @turn)
           [c, ddx, ddy] = [c - 1, ddx - dx, ddy - dy]
   
           while c > 0
@@ -159,12 +164,13 @@ class Reversi
               @WhiteStone++
               @BlackStone--
             # @SPRITES[@xy2pos(x + ddx, y + ddy)].frame = (if (@turn > 0) then 1 else 2)
-            @turnStone @SPRITES[@xy2pos(x + ddx, y + ddy)], {delay: opts.delay + 0.3, turn: @turn}
+            turnPos = @xy2pos(x + ddx, y + ddy)
+            @showStone @SPRITES[turnPos], {delay: opts.delay + 0.3, turn: @turn, pos:turnPos}
             [c, ddx, ddy] = [c - 1, ddx - dx, ddy - dy]
 
       @BoardState[pos] = @turn
       alert(pos) unless @SPRITES[pos]
-      @setStone @SPRITES[pos], {delay:opts.delay, turn:@turn}
+      @showStone @SPRITES[pos], {delay:opts.delay, turn:@turn, pos:pos}
 
       # 石数を変更する（置いた石）
       if @turn > 0
@@ -248,10 +254,10 @@ class Reversi
       @play_pos = 0
       setMessage "ゲームスタート！！"
       setStatMessage "やりなおす"
-      canPut = @checkInvert()
+      canPuts = @checkInvert()
       # CPU が打つ
-      if @players[0] > 0 and canPut.length > 0
-        @putStone(@cpus[@players[0] - 1].play(@BoardState.slice(0), {turn:@turn, canPuts:canPut.slice(0)})) # slice(0) をつかって clone したものを渡す。
+      if @players[0] > 0 and canPuts.length > 0
+        @putStone(@cpus[@players[0] - 1].play(@BoardState.slice(0), {turn:@turn, canPuts:canPuts.slice(0)})) # slice(0) をつかって clone したものを渡す。
     else
       # やりなおす
       if confirm("本当にやり直しますか？")
