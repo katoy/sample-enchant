@@ -6,7 +6,9 @@
 
 
 (function() {
-  var AI_First, AI_Gain, AI_Random, Reversi;
+  var AI_Base, AI_First, AI_Gain, AI_Montecarlo, AI_Negamax, AI_Random, Rating, Reversi, _ref,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   Reversi = (function() {
     var dXY, setMessage, setStatMessage;
@@ -149,16 +151,13 @@
       }
       next_frame = opts.turn === 1 ? 1 : 2;
       if ((this.players[0] > 0 && this.players[1] > 0) || (this.replay_mode === true)) {
-        console.log("--- showStone[" + x + ", " + y + "] immediatory");
         return stone.frame = next_frame;
       } else {
         if (stone.frame !== 0) {
-          console.log("--- showStone[" + x + ", " + y + "] (turn) delay " + opts.delay);
           return stone.tl.delay(opts.delay * this.fps).scaleTo(0.1 * this.scale, this.scale, 0.2 * this.fps).then(function() {
             return this.frame = next_frame;
           }).scaleTo(this.scale, this.scale, this.fps * 0.2);
         } else {
-          console.log("--- showStone[" + x + ", " + y + "] (set) delay " + opts.delay);
           return stone.tl.delay(opts.delay * this.fps).then(function() {
             return this.frame = next_frame;
           });
@@ -167,7 +166,7 @@
     };
 
     Reversi.prototype.putStone = function(pos, opts) {
-      var c, canPuts, cpuID, cpuPut, ddx, ddy, dx, dy, i, turnPos, turnX, x, y, _i, _j, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7;
+      var c, canPuts, cpuID, cpuPut, ddx, ddy, dx, dy, i, result, resultMessage, turnPos, turnX, x, y, _i, _j, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7;
 
       if (opts == null) {
         opts = {
@@ -241,8 +240,10 @@
           this.turn *= -1;
           canPuts = this.checkInvert();
           if (canPuts.length === 0) {
-            setMessage("終了");
             setStatMessage("はじめから");
+            result = this.gameResult();
+            resultMessage = result === 0 ? "引分け" : result > 0 ? "黒の勝ち" : "白の勝ち";
+            setMessage("終了 (" + resultMessage + ")");
             return;
           }
         }
@@ -253,13 +254,26 @@
             canPuts: canPuts.slice(0)
           });
           if (cpuPut !== null) {
-            return this.putStone(cpuPut, {
+            this.putStone(cpuPut, {
               delay: opts.delay + 0.8,
               turn: this.turn
             });
           }
         }
+        return null;
       }
+    };
+
+    Reversi.prototype.gameResult = function() {
+      var r, s, _i, _len, _ref;
+
+      r = 0;
+      _ref = this.BoardState;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        s = _ref[_i];
+        r += s;
+      }
+      return r;
     };
 
     Reversi.prototype.recordPlay = function(pos) {
@@ -382,7 +396,7 @@
     core = new Core(game_board_width + 10, game_board_width + 10);
     reversi = new Reversi(core, game_size, Math.floor(game_board_width / game_size));
     this.reversi = reversi;
-    reversi.setCPUs([new AI_First(), new AI_Random(), new AI_Gain()].slice(0));
+    reversi.setCPUs([new AI_First(), new AI_Random(), new AI_Gain(), new AI_Montecarlo(), new AI_Negamax(2), new AI_Negamax(3), new AI_Negamax(4), new AI_Negamax(5)].slice(0));
     core.onload = function() {
       var board, stone, _i, _len, _results;
 
@@ -401,6 +415,98 @@
     };
     return core.start();
   };
+
+  AI_Base = (function() {
+    var dXY;
+
+    function AI_Base() {}
+
+    dXY = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
+
+    AI_Base.prototype.numStone = 64;
+
+    AI_Base.prototype.gameSize = 8;
+
+    AI_Base.prototype.play = function(boardState, opts) {
+      if (opts == null) {
+        opts = {};
+      }
+    };
+
+    AI_Base.prototype.xy2pos = function(x, y) {
+      return x + y * this.gameSize;
+    };
+
+    AI_Base.prototype.pos2xy = function(pos) {
+      return [pos % this.gameSize, Math.floor(pos / this.gameSize)];
+    };
+
+    AI_Base.prototype.isInBoard = function(x, y) {
+      return (x >= 0) && (x < this.gameSize) && (y >= 0) && (y < this.gameSize);
+    };
+
+    AI_Base.prototype.putStone = function(boardState, pos, turn, doTurn) {
+      var c, ddx, ddy, dx, dy, gain, i, turnX, x, y, _i, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6;
+
+      if (doTurn == null) {
+        doTurn = false;
+      }
+      if (boardState[pos] !== 0) {
+        return -1;
+      }
+      turnX = turn * (-1);
+      gain = 0;
+      _ref = this.pos2xy(pos), x = _ref[0], y = _ref[1];
+      for (i = _i = 0, _ref1 = dXY.length; 0 <= _ref1 ? _i < _ref1 : _i > _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
+        _ref2 = [dXY[i][0], dXY[i][1]], dx = _ref2[0], dy = _ref2[1];
+        _ref3 = [1, dx, dy], c = _ref3[0], ddx = _ref3[1], ddy = _ref3[2];
+        while (this.isInBoard(x + ddx, y + ddy) && (boardState[this.xy2pos(x + ddx, y + ddy)] === turnX)) {
+          _ref4 = [c + 1, ddx + dx, ddy + dy], c = _ref4[0], ddx = _ref4[1], ddy = _ref4[2];
+        }
+        if (this.isInBoard(x + ddx, y + ddy) && boardState[this.xy2pos(x + ddx, y + ddy)] === turn) {
+          _ref5 = [c - 1, ddx - dx, ddy - dy], c = _ref5[0], ddx = _ref5[1], ddy = _ref5[2];
+          while (c > 0) {
+            if (doTurn) {
+              boardState[this.xy2pos(x + ddx, y + ddy)] = turn;
+            }
+            _ref6 = [c - 1, ddx - dx, ddy - dy], c = _ref6[0], ddx = _ref6[1], ddy = _ref6[2];
+            gain++;
+          }
+        }
+      }
+      if (doTurn) {
+        boardState[pos] = turn;
+      }
+      return gain;
+    };
+
+    AI_Base.prototype.checkInvert = function(board, turn) {
+      var c, canPuts, ddx, ddy, dx, dy, i, pos, turnX, x, y, _i, _j, _ref, _ref1, _ref2, _ref3, _ref4, _ref5;
+
+      canPuts = [];
+      turnX = (-1) * turn;
+      for (pos = _i = 0, _ref = this.numStone; 0 <= _ref ? _i < _ref : _i > _ref; pos = 0 <= _ref ? ++_i : --_i) {
+        if (board[pos] === 0) {
+          _ref1 = this.pos2xy(pos), x = _ref1[0], y = _ref1[1];
+          for (i = _j = 0, _ref2 = dXY.length; 0 <= _ref2 ? _j < _ref2 : _j > _ref2; i = 0 <= _ref2 ? ++_j : --_j) {
+            _ref3 = [dXY[i][0], dXY[i][1]], dx = _ref3[0], dy = _ref3[1];
+            _ref4 = [1, dx, dy], c = _ref4[0], ddx = _ref4[1], ddy = _ref4[2];
+            while (this.isInBoard(x + ddx, y + ddy) && (board[this.xy2pos(x + ddx, y + ddy)] === turnX)) {
+              _ref5 = [c + 1, ddx + dx, ddy + dy], c = _ref5[0], ddx = _ref5[1], ddy = _ref5[2];
+            }
+            if (this.isInBoard(x + ddx, y + ddy) && (board[this.xy2pos(x + ddx, y + ddy)] === turn) && (c > 1)) {
+              canPuts.push(pos);
+              break;
+            }
+          }
+        }
+      }
+      return canPuts;
+    };
+
+    return AI_Base;
+
+  })();
 
   AI_First = (function() {
     function AI_First() {}
@@ -438,16 +544,10 @@
 
   })();
 
-  AI_Gain = (function() {
-    var dXY;
+  AI_Gain = (function(_super) {
+    __extends(AI_Gain, _super);
 
     function AI_Gain() {}
-
-    dXY = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
-
-    AI_Gain.prototype.numStone = 64;
-
-    AI_Gain.prototype.gameSize = 8;
 
     AI_Gain.prototype.play = function(boardState, opts) {
       var ans, gainMax, gains, i, pos, score, turn, _i, _j, _len, _ref, _ref1;
@@ -477,62 +577,209 @@
           gains[score] = [pos];
         }
       }
+      console.log("#--- AI_gains ");
       console.log(gains);
-      if (gainMax <= 0) {
-        return null;
-      }
-      return gains[gainMax][Math.floor(Math.random() * gains[gainMax].length)];
-    };
-
-    AI_Gain.prototype.xy2pos = function(x, y) {
-      return x + y * this.gameSize;
-    };
-
-    AI_Gain.prototype.pos2xy = function(pos) {
-      return [pos % this.gameSize, Math.floor(pos / this.gameSize)];
-    };
-
-    AI_Gain.prototype.isInBoard = function(x, y) {
-      return (x >= 0) && (x < this.gameSize) && (y >= 0) && (y < this.gameSize);
-    };
-
-    AI_Gain.prototype.putStone = function(boardState, pos, turn, doTurn) {
-      var c, ddx, ddy, dx, dy, gain, i, turnX, x, y, _i, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6;
-
-      if (doTurn == null) {
-        doTurn = false;
-      }
-      if (boardState[pos] !== 0) {
-        return -1;
-      }
-      turnX = turn * (-1);
-      gain = 0;
-      _ref = this.pos2xy(pos), x = _ref[0], y = _ref[1];
-      for (i = _i = 0, _ref1 = dXY.length; 0 <= _ref1 ? _i < _ref1 : _i > _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
-        _ref2 = [dXY[i][0], dXY[i][1]], dx = _ref2[0], dy = _ref2[1];
-        _ref3 = [1, dx, dy], c = _ref3[0], ddx = _ref3[1], ddy = _ref3[2];
-        while (this.isInBoard(x + ddx, y + ddy) && (boardState[this.xy2pos(x + ddx, y + ddy)] === turnX)) {
-          _ref4 = [c + 1, ddx + dx, ddy + dy], c = _ref4[0], ddx = _ref4[1], ddy = _ref4[2];
-        }
-        if (boardState[this.xy2pos(x + ddx, y + ddy)] === turn) {
-          _ref5 = [c - 1, ddx - dx, ddy - dy], c = _ref5[0], ddx = _ref5[1], ddy = _ref5[2];
-          while (c > 0) {
-            if (doTurn) {
-              boardState[this.xy2pos(x + ddx, y + ddy)] = turn;
-            }
-            _ref6 = [c - 1, ddx - dx, ddy - dy], c = _ref6[0], ddx = _ref6[1], ddy = _ref6[2];
-            gain++;
-          }
-        }
-      }
-      if (doTurn) {
-        boardState[pos] = turn;
-      }
-      return gain;
+      pos = gainMax <= 0 ? nyll : gains[gainMax][Math.floor(Math.random() * gains[gainMax].length)];
+      console.log("#--- AI_Gain turn:" + turn + ", pos:" + pos);
+      return pos;
     };
 
     return AI_Gain;
 
+  })(AI_Base);
+
+  AI_Montecarlo = (function(_super) {
+    var dXY;
+
+    __extends(AI_Montecarlo, _super);
+
+    function AI_Montecarlo() {
+      _ref = AI_Montecarlo.__super__.constructor.apply(this, arguments);
+      return _ref;
+    }
+
+    dXY = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
+
+    AI_Montecarlo.prototype.numStone = 64;
+
+    AI_Montecarlo.prototype.gameSize = 8;
+
+    AI_Montecarlo.prototype.playCount = 5;
+
+    AI_Montecarlo.prototype.play = function(boardState, opts) {
+      var ans, drowCount, i, p, pos, turn, winCount, winMax, winer, wins, workBoard, _i, _j, _k, _len, _ref1, _ref2, _ref3;
+
+      if (opts == null) {
+        opts = {};
+      }
+      turn = opts.turn;
+      ans = null;
+      wins = {};
+      winMax = -1;
+      for (i = _i = 0, _ref1 = this.numStone; 0 <= _ref1 ? _i < _ref1 : _i > _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
+        if (boardState[i] === 2) {
+          boardState[i] = 0;
+        }
+      }
+      winMax = -1;
+      wins = {};
+      _ref2 = opts.canPuts;
+      for (_j = 0, _len = _ref2.length; _j < _len; _j++) {
+        pos = _ref2[_j];
+        winCount = 0;
+        drowCount = 0;
+        for (p = _k = 0, _ref3 = this.playCount; 0 <= _ref3 ? _k < _ref3 : _k > _ref3; p = 0 <= _ref3 ? ++_k : --_k) {
+          workBoard = boardState.slice(0);
+          winer = this.playGame(workBoard, turn, pos);
+          if (winer === turn) {
+            winCount++;
+          }
+          if (winer === 0) {
+            drowCount++;
+          }
+        }
+        if (winCount === 0 && drowCount === 0) {
+          winCount = -1;
+        }
+        if (wins[winCount]) {
+          wins[winCount].push(pos);
+        } else {
+          wins[winCount] = [pos];
+        }
+        if (winMax < winCount) {
+          winMax = winCount;
+        }
+      }
+      console.log("#--- AI_Montecarlo(playCount=" + this.playCount + " turn:" + turn + ", pos:" + wins[winMax][0]);
+      return wins[winMax][0];
+    };
+
+    AI_Montecarlo.prototype.playGame = function(board, turn, pos) {
+      var canPuts, i, pass, win, _i, _len;
+
+      pass = 0;
+      while (pass < 2) {
+        if (pos >= 0) {
+          this.putStone(board, pos, turn, true);
+        }
+        turn *= -1.;
+        canPuts = this.checkInvert(board, turn);
+        if (canPuts.length === 0) {
+          pos = null;
+          pass++;
+        } else {
+          pos = canPuts[Math.floor(Math.random() * canPuts.length)];
+          pass = 0;
+        }
+      }
+      win = 0;
+      for (_i = 0, _len = board.length; _i < _len; _i++) {
+        i = board[_i];
+        win += i;
+      }
+      if (win === 0) {
+        return 0;
+      }
+      if (win > 0) {
+        return 1;
+      } else {
+        return -1;
+      }
+    };
+
+    return AI_Montecarlo;
+
+  })(AI_Base);
+
+  Rating = (function() {
+    function Rating() {}
+
+    Rating.rate9 = [127, -32, 0, -1, -1, -1, 0, -32, 127, -32, -64, -1, -1, -1, -1, -1, -64, -32, 0, -1, 0, -1, -1, -1, 0, -1, 0, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, 0, -1, 0, -1, -1, -1, 0, -1, 0, -32, -64, -1, -1, -1, -1, -1, -64, -32, 127, -32, 0, -1, -1, -1, 0, -32, 127];
+
+    Rating.rate8 = [127, -32, 0, -1, -1, 0, -32, 127, -32, -64, -1, -1, -1, -1, -64, -32, 0, -1, 0, -1, -1, 0, -1, 0, -1, -1, -1, 0, 0, -1, -1, -1, -1, -1, -1, 0, 0, -1, -1, -1, 0, -1, 0, -1, -1, 0, -1, 0, -32, -64, -1, -1, -1, -1, -64, -32, 127, -32, 0, -1, -1, 0, -32, 127];
+
+    Rating.rate7 = [127, -32, 0, -1, 0, -32, 127, -32, -64, -1, -1, -1, -64, -32, 0, -1, 0, -1, 0, -1, 0, -1, -1, -1, 0, -1, -1, -1, 0, -1, 0, -1, 0, -1, 0, -32, -64, -1, -1, -1, -64, -32, 127, -32, 0, -1, 0, -32, 127];
+
+    Rating.rate6 = [127, -32, 0, 0, -32, 127, -32, -64, -1, -1, -64, -32, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, -32, -64, -1, -1, -64, -32, 127, -32, 0, 0, -32, 127];
+
+    Rating.rate5 = [127, -32, 0, -32, 127, -32, -64, -1, -64, -32, 0, -1, 0, -1, 0, -32, -64, -1, -64, -32, 127, -32, 0, -32, 127];
+
+    Rating.rate4 = [127, -32, -32, 127, -32, -64, -64, -32, -32, -64, -64, -32, 127, -32, -32, 127];
+
+    Rating.evalBoard = function(board, gameSize) {
+      var pos, rate, score, _i, _ref1;
+
+      rate = Rating["rate" + gameSize];
+      score = 0;
+      for (pos = _i = 0, _ref1 = rate.length; 0 <= _ref1 ? _i < _ref1 : _i > _ref1; pos = 0 <= _ref1 ? ++_i : --_i) {
+        score += board[pos] * rate[pos];
+      }
+      return score;
+    };
+
+    return Rating;
+
   })();
+
+  AI_Negamax = (function(_super) {
+    __extends(AI_Negamax, _super);
+
+    function AI_Negamax(depth, gameSize) {
+      this.depth = depth != null ? depth : 5;
+      this.gameSize = gameSize != null ? gameSize : 8;
+    }
+
+    AI_Negamax.prototype.play = function(boardState, opts) {
+      var depth, i, num_rest, pos, turn, v, _i, _ref1, _ref2;
+
+      if (opts == null) {
+        opts = {};
+      }
+      turn = opts.turn;
+      num_rest = 0;
+      for (i = _i = 0, _ref1 = this.numStone; 0 <= _ref1 ? _i < _ref1 : _i > _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
+        if (boardState[i] === 2) {
+          boardState[i] = 0;
+        }
+        if (boardState[i] === 0) {
+          num_rest++;
+        }
+      }
+      depth = this.depth;
+      if (num_rest <= 5) {
+        depth = 5;
+      }
+      _ref2 = this.negMax(depth, boardState, turn), v = _ref2[0], pos = _ref2[1];
+      console.log("#--- AI_Negamax(depth=" + this.depth + " turn:" + turn + ", pos:" + pos);
+      return pos;
+    };
+
+    AI_Negamax.prototype.negMax = function(depth, board, turn) {
+      var bestPos, bestV, canPuts, evaled, nextBoard, nextPos, v, workBoard, _i, _len;
+
+      if (depth === 0) {
+        return [Rating.evalBoard(board, this.gameSize) * turn, null];
+      }
+      bestV = -32000;
+      bestPos = null;
+      workBoard = board.slice(0);
+      canPuts = this.checkInvert(workBoard, turn);
+      for (_i = 0, _len = canPuts.length; _i < _len; _i++) {
+        nextPos = canPuts[_i];
+        nextBoard = workBoard.slice(0);
+        this.putStone(nextBoard, nextPos, turn, true);
+        evaled = this.negMax(depth - 1, nextBoard, (-1) * turn);
+        v = (-1) * evaled[0];
+        if (bestV <= v) {
+          bestV = v;
+          bestPos = nextPos;
+        }
+      }
+      return [bestV, bestPos];
+    };
+
+    return AI_Negamax;
+
+  })(AI_Base);
 
 }).call(this);

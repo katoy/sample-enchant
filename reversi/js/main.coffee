@@ -7,8 +7,8 @@ window.onload = ->
   
   reversi = new Reversi core, game_size, Math.floor(game_board_width / game_size)
   this.reversi = reversi
-  # reversi.setCPUs [new AI_First(), new AI_Random(), new AI_Gain(), new AI_Montecarlo(), new AI_Minmax()].slice(0)
-  reversi.setCPUs [new AI_First(), new AI_Random(), new AI_Gain()].slice(0)
+  reversi.setCPUs [new AI_First(), new AI_Random(), new AI_Gain(), new AI_Montecarlo(),
+                   new AI_Negamax(2), new AI_Negamax(3), new AI_Negamax(4), new AI_Negamax(5)].slice(0)
 
   core.onload = ->
     board = reversi.createBoard()
