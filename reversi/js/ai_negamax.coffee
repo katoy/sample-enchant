@@ -63,10 +63,15 @@ class Rating
   ]
 
 
-  @evalBoard: (board, gameSize) ->
+  @evalBoard: (board, gameSize, mode) ->
     rate = Rating["rate#{gameSize}"]
     score = 0
-    score += board[pos] * rate[pos] for pos in [0 ... rate.length]
+    if mode is "gain"
+      # 石数だけで評価(終盤の読みきり時)
+      score += board[pos]  for pos in [0 ... rate.length]
+    else
+      # 石の位置に重みをつけて評価
+      score += board[pos] * rate[pos] for pos in [0 ... rate.length]
     score
 
 class AI_Negamax extends AI_Base
@@ -84,33 +89,38 @@ class AI_Negamax extends AI_Base
         boardState[i] = 0
       num_rest++ if boardState[i] is 0
 
-    # 残り５手になったら最後まで読む。
     depth = @depth
-    depth = 5 if num_rest <= 5
+    mode = ""
+    if num_rest <= 10
+      mode = "gain"    # 石数だけで評価(終盤の読みきり時)
+      depth = num_rest
 
-    [v, pos] = @negMax(depth, boardState, turn)
-    console.log "#--- AI_Negamax(depth=#{@depth} turn:#{turn}, pos:#{pos}"
+    [v, posAry] = @negaMax(depth, boardState, turn, mode)
+    pos = posAry[Math.floor(Math.random() * posAry.length)]
+    console.log "#--- AI_Negamax(depth=#{@depth} turn:#{turn}, pos:#{pos}, v=#{v}"
     pos
 
-  negMax: (depth, board, turn) ->
+  negaMax: (depth, board, turn, mode) ->
     if depth is 0
-      return [Rating.evalBoard(board, @gameSize) * turn, null]
+      return [Rating.evalBoard(board, @gameSize, mode) * turn, null]
 
     bestV = -32000
-    bestPos = null
+    bestPos = {}
 
     workBoard = board.slice(0)
     canPuts = @checkInvert(workBoard, turn)
     for nextPos in canPuts
       nextBoard = workBoard.slice(0) # clone
       @putStone(nextBoard, nextPos, turn, true)
-      evaled = @negMax(depth - 1, nextBoard, (-1) * turn)
+      evaled = @negaMax(depth - 1, nextBoard, (-1) * turn, mode)
       v = (-1) * evaled[0]
-      if bestV <= v
-        bestV = v
-        bestPos = nextPos
-    [bestV, bestPos]
+      if bestPos[v]
+        bestPos[v].push nextPos
+      else
+        bestPos[v] = [nextPos]
+  
+      bestV = v if bestV <= v
+    [bestV, bestPos[bestV]]
 
-  # alphabeta: (depthm board, turn, alpha, beta) ->
   
 

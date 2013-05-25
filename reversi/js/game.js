@@ -706,13 +706,19 @@
 
     Rating.rate4 = [127, -32, -32, 127, -32, -64, -64, -32, -32, -64, -64, -32, 127, -32, -32, 127];
 
-    Rating.evalBoard = function(board, gameSize) {
-      var pos, rate, score, _i, _ref1;
+    Rating.evalBoard = function(board, gameSize, mode) {
+      var pos, rate, score, _i, _j, _ref1, _ref2;
 
       rate = Rating["rate" + gameSize];
       score = 0;
-      for (pos = _i = 0, _ref1 = rate.length; 0 <= _ref1 ? _i < _ref1 : _i > _ref1; pos = 0 <= _ref1 ? ++_i : --_i) {
-        score += board[pos] * rate[pos];
+      if (mode === "gain") {
+        for (pos = _i = 0, _ref1 = rate.length; 0 <= _ref1 ? _i < _ref1 : _i > _ref1; pos = 0 <= _ref1 ? ++_i : --_i) {
+          score += board[pos];
+        }
+      } else {
+        for (pos = _j = 0, _ref2 = rate.length; 0 <= _ref2 ? _j < _ref2 : _j > _ref2; pos = 0 <= _ref2 ? ++_j : --_j) {
+          score += board[pos] * rate[pos];
+        }
       }
       return score;
     };
@@ -730,7 +736,7 @@
     }
 
     AI_Negamax.prototype.play = function(boardState, opts) {
-      var depth, i, num_rest, pos, turn, v, _i, _ref1, _ref2;
+      var depth, i, mode, num_rest, pos, posAry, turn, v, _i, _ref1, _ref2;
 
       if (opts == null) {
         opts = {};
@@ -746,36 +752,43 @@
         }
       }
       depth = this.depth;
-      if (num_rest <= 5) {
-        depth = 5;
+      mode = "";
+      if (num_rest <= 10) {
+        mode = "gain";
+        depth = num_rest;
       }
-      _ref2 = this.negMax(depth, boardState, turn), v = _ref2[0], pos = _ref2[1];
-      console.log("#--- AI_Negamax(depth=" + this.depth + " turn:" + turn + ", pos:" + pos);
+      _ref2 = this.negaMax(depth, boardState, turn, mode), v = _ref2[0], posAry = _ref2[1];
+      pos = posAry[Math.floor(Math.random() * posAry.length)];
+      console.log("#--- AI_Negamax(depth=" + this.depth + " turn:" + turn + ", pos:" + pos + ", v=" + v);
       return pos;
     };
 
-    AI_Negamax.prototype.negMax = function(depth, board, turn) {
+    AI_Negamax.prototype.negaMax = function(depth, board, turn, mode) {
       var bestPos, bestV, canPuts, evaled, nextBoard, nextPos, v, workBoard, _i, _len;
 
       if (depth === 0) {
-        return [Rating.evalBoard(board, this.gameSize) * turn, null];
+        return [Rating.evalBoard(board, this.gameSize, mode) * turn, null];
       }
       bestV = -32000;
-      bestPos = null;
+      bestPos = {};
       workBoard = board.slice(0);
       canPuts = this.checkInvert(workBoard, turn);
       for (_i = 0, _len = canPuts.length; _i < _len; _i++) {
         nextPos = canPuts[_i];
         nextBoard = workBoard.slice(0);
         this.putStone(nextBoard, nextPos, turn, true);
-        evaled = this.negMax(depth - 1, nextBoard, (-1) * turn);
+        evaled = this.negaMax(depth - 1, nextBoard, (-1) * turn, mode);
         v = (-1) * evaled[0];
+        if (bestPos[v]) {
+          bestPos[v].push(nextPos);
+        } else {
+          bestPos[v] = [nextPos];
+        }
         if (bestV <= v) {
           bestV = v;
-          bestPos = nextPos;
         }
       }
-      return [bestV, bestPos];
+      return [bestV, bestPos[bestV]];
     };
 
     return AI_Negamax;
