@@ -22,7 +22,7 @@ enchant.js の練習です。
 - <http://katoy.github.io/sample-enchant/breakblock/index.html>
 - <http://katoy.github.io/sample-enchant/invador/index.html>
 - <http://katoy.github.io/sample-enchant/playingcards/index.html>
-- <http://katoy.github.io/sample-enchant/enchant/memory/index.html>
+- <http://katoy.github.io/sample-enchant/memory/index.html>
 - <http://katoy.github.io/sample-enchant/tetris/index.html>
 - <http://katoy.github.io/sample-enchant/reversi/index.html>
 
